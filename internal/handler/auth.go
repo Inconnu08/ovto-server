@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"context"
@@ -48,7 +48,7 @@ func (h *handler) login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, err := h.Login(r.Context(), in.Email, in.Password)
+	out, err := h.UserLogin(r.Context(), in.Email, in.Password)
 	if err == service.ErrUnimplemented {
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return

@@ -1,7 +1,3 @@
-DROP DATABASE IF EXISTS ovto CASCADE;
-CREATE DATABASE IF NOT EXISTS ovto;
-SET DATABASE = ovto;
-
 CREATE TABLE IF NOT EXISTS users
 (
     id              SERIAL  NOT NULL PRIMARY KEY,
@@ -25,8 +21,8 @@ CREATE TABLE IF NOT EXISTS foodprovider
 (
     id              SERIAL  NOT NULL PRIMARY KEY,
     email           VARCHAR NOT NULL UNIQUE,
-    fullname        VARCHAR(50) NOT NULL,
-    phone           VARCHAR NOT NULL UNIQUE,
+    fullname        VARCHAR(50) NOT NULL UNIQUE,
+    phone           VARCHAR NOT NULL,
     password        VARCHAR NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
@@ -47,6 +43,3 @@ CREATE TABLE IF NOT EXISTS restuarant
     ambassador_code VARCHAR,
     created_at TIMESTAMPTZ NOT NULL DEFAULT now()
 );
--- INSERT INTO users (id, email, fullname)
--- VALUES (1, 'jon@example.org', 'jon snow'),
---        (2, 'jane@example.org', 'night king');

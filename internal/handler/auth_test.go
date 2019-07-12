@@ -1,4 +1,4 @@
-package handlers
+package handler
 //
 //import (
 //	"authdemo/internal/service"

@@ -13,9 +13,13 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+type key string
+
 const (
 	TokenLifeSpan     = time.Hour * 1
-	KeyAuthUserID key = "auth_user_id" // To use in context.
+	// These are used in context.
+	KeyAuthUserID         key = "auth_user_id"
+	KeyAuthFoodProviderID key = "auth_foodprovider_id"
 )
 
 var (
@@ -30,8 +34,6 @@ var (
 	// ErrVerificationCodeNotFound denotes a not found verification code.
 	ErrVerificationCodeNotFound = errors.New("verification code not found")
 )
-
-type key string
 
 type LoginOutput struct {
 	Token     string    `json:"token"`
@@ -68,7 +70,7 @@ type ThirdPartyProfile interface {
 
 }
 
-// to decode token
+// AuthUserID is used to decode token
 func (s *Service) AuthUserID(token string) (int64, error) {
 	str, err := s.codec.DecodeToString(token)
 	if err != nil {
@@ -82,9 +84,60 @@ func (s *Service) AuthUserID(token string) (int64, error) {
 	return i, nil
 }
 
-func (s *Service) Login(ctx context.Context, email string, password string) (LoginOutput, error) {
+// AuthUser is the current authenticated user.
+func (s *Service) AuthUser(ctx context.Context) (User, error) {
+	var u User
+	uid, ok := ctx.Value(KeyAuthUserID).(int64)
+	log.Println("UID: ", uid)
+	if !ok {
+		return u, ErrUnauthenticated
+	}
+
+	//return s.userByID(ctx, uid)
+
+	query := "SELECT fullname FROM users WHERE id = $1"
+	err := s.db.QueryRowContext(ctx, query, uid).Scan(&u.Fullname)
+	log.Println(err)
+	if err == sql.ErrNoRows {
+		return u, ErrUserNotFound
+	}
+
+	if err != nil {
+		return u, fmt.Errorf("could not query selected auth user: %v", err)
+	}
+
+	u.ID = uid
+	return u, nil
+}
+
+// AuthFoodProvider is the current authenticated food provider.
+func (s *Service) AuthFoodProvider(ctx context.Context) (User, error) {
+	var u User
+	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
+	log.Println("FP UID: ", uid)
+	if !ok {
+		return u, ErrUnauthenticated
+	}
+
+	//return s.userByID(ctx, uid)
+
+	query := "SELECT fullname FROM foodprovider WHERE id = $1"
+	err := s.db.QueryRowContext(ctx, query, uid).Scan(&u.Fullname)
+	log.Println(err)
+	if err == sql.ErrNoRows {
+		return u, ErrUserNotFound
+	}
+
+	if err != nil {
+		return u, fmt.Errorf("could not query selected auth food provider: %v", err)
+	}
+
+	u.ID = uid
+	return u, nil
+}
+
+func (s *Service) UserLogin(ctx context.Context, email string, password string) (LoginOutput, error) {
 	var out LoginOutput
-	var hPassword []byte
 
 	password = strings.TrimSpace(password)
 	email = strings.TrimSpace(email)
@@ -99,6 +152,7 @@ func (s *Service) Login(ctx context.Context, email string, password string) (Log
 		return out, ErrUserNotFound
 	}
 
+	var hPassword []byte
 	query = "SELECT password FROM credentials WHERE user_id = $1"
 	err = s.db.QueryRowContext(ctx, query, out.AuthUser.ID).Scan(&hPassword)
 
@@ -107,8 +161,41 @@ func (s *Service) Login(ctx context.Context, email string, password string) (Log
 	}
 
 	if err != nil {
-		log.Println("[Login]: ", err)
+		log.Println("[UserLogin]: ", err)
 		return out, fmt.Errorf("could not query user %v\n", err)
+	}
+
+	if err = bcrypt.CompareHashAndPassword(hPassword, []byte(password)); err != nil {
+		return out, ErrInvalidPassword
+	}
+
+	//out.AuthUser.AvatarURL = s.avatarURL(avatar)
+
+	out.Token, err = s.codec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
+	if err != nil {
+		return out, fmt.Errorf("could not generate token: %v", err)
+	}
+
+	out.ExpiresAt = time.Now().Add(TokenLifeSpan)
+
+	return out, nil
+}
+
+func (s *Service) FoodProviderLogin(ctx context.Context, email string, password string) (LoginOutput, error) {
+	var out LoginOutput
+
+	password = strings.TrimSpace(password)
+	email = strings.TrimSpace(email)
+	if !rxEmail.MatchString(email) {
+		return out, ErrInvalidEmail
+	}
+
+	//var avatar sql.NullString
+	var hPassword []byte
+	query := "SELECT id, fullname, password FROM foodprovider WHERE email = $1"
+	err := s.db.QueryRowContext(ctx, query, email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname, &hPassword)
+	if err == sql.ErrNoRows {
+		return out, ErrUserNotFound
 	}
 
 	if err = bcrypt.CompareHashAndPassword(hPassword, []byte(password)); err != nil {
@@ -187,30 +274,4 @@ func (s *Service) GoogleAuth(ctx context.Context, profile GoogleAuthOutput) (Log
 	out.ExpiresAt = time.Now().Add(TokenLifeSpan)
 
 	return out, nil
-}
-
-// AuthUser is the current authenticated user.
-func (s *Service) AuthUser(ctx context.Context) (User, error) {
-	var u User
-	uid, ok := ctx.Value(KeyAuthUserID).(int64)
-	log.Println("UID: ", uid)
-	if !ok {
-		return u, ErrUnauthenticated
-	}
-
-	//return s.userByID(ctx, uid)
-
-	query := "SELECT fullname FROM users WHERE id = $1"
-	err := s.db.QueryRowContext(ctx, query, uid).Scan(&u.Fullname)
-	log.Println(err)
-	if err == sql.ErrNoRows {
-		return u, ErrUserNotFound
-	}
-
-	if err != nil {
-		return u, fmt.Errorf("could not query selected auth user: %v", err)
-	}
-
-	u.ID = uid
-	return u, nil
 }

@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"encoding/json"
@@ -12,6 +12,11 @@ type createUserInput struct {
 	Fullname string `json:"fullname"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
+}
+
+type updateUserInput struct {
+	Address string `json:"address"`
+	Phone   string `json:"phone"`
 }
 
 func (h *handler) createUser(w http.ResponseWriter, r *http.Request) {
@@ -40,6 +45,34 @@ func (h *handler) createUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *handler) updateUser(w http.ResponseWriter, r *http.Request) {
+	var in updateUserInput
+
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := h.UpdateUser(r.Context(), in.Address, in.Phone)
+	if err == service.ErrUnauthenticated {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err == service.ErrInvalidPhone {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	if err != nil {
+		respondErr(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *handler) updateDisplayPicture(w http.ResponseWriter, r *http.Request) {

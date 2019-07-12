@@ -11,7 +11,7 @@ import (
 	"github.com/hako/branca"
 	_ "github.com/jackc/pgx/stdlib"
 
-	"ovto/internal/handlers"
+	"ovto/internal/handler"
 	"ovto/internal/service"
 )
 
@@ -19,7 +19,7 @@ func main() {
 	var (
 		port      = env("PORT", "3000")
 		originStr = env("ORIGIN", "http://localhost:"+port)
-		dbURL     = env("DATABASE_URL", "postgresql://root@127.0.0.1:26257/authdemo?sslmode=disable")
+		dbURL     = env("DATABASE_URL", "postgresql://root@127.0.0.1:26257/ovto?sslmode=disable")
 		tokenKey  = env("TOKEN_KEY", "supersecretkeyyoushouldnotcommit")
 	)
 
@@ -31,8 +31,12 @@ func main() {
 
 	db, err := sql.Open("pgx", dbURL)
 	if err != nil {
-		log.Fatalf("cound not open db connection %v\n", err)
+		log.Fatalf("cound not open db connection: %v\n", err)
 		return
+	}
+
+	if err := service.ValidateSchema(db); err != nil {
+		log.Fatalf("failed to validate schema: %v\n", err)
 	}
 
 	defer func() {
@@ -50,7 +54,7 @@ func main() {
 	codec.SetTTL(uint32(service.TokenLifeSpan.Seconds()))
 
 	s := service.New(db, codec, *origin)
-	h := handlers.New(s)
+	h := handler.New(s)
 
 	//go func() {
 	//	cmd := exec.Command("cockroach", "start", "--insecure")
@@ -80,6 +84,7 @@ func env(key, fallbackValue string) string {
 
 // start db
 // cockroach start --insecure
+// cockroach start --insecure --host localhost
 //
 // create table
 // cat schema.sql | cockroach sql --insecure

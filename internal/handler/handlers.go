@@ -1,4 +1,4 @@
-package handlers
+package handler
 
 import (
 	"net/http"
@@ -20,6 +20,7 @@ func New(s *service.Service) http.Handler {
 	api.HandleFunc("POST", "/facebook", h.facebookAuth)
 	api.HandleFunc("GET", "/auth_user", h.authUser)
 	api.HandleFunc("POST", "/users", h.createUser)
+	api.HandleFunc("PUT", "/users", h.updateUser)
 	api.HandleFunc("PUT", "/auth_user/dp", h.updateDisplayPicture)
 
 	fs := http.FileServer(&spaFileSystem{http.Dir("web/static")})

@@ -17,7 +17,6 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-
 // FoodProvider model
 type FoodProvider struct {
 	ID       int64  `json:"id,omitempty"`
@@ -67,8 +66,12 @@ func (s *Service) CreateFoodProvider(ctx context.Context, email, fullname, phone
 	query := "INSERT INTO foodprovider (email, fullname, phone, password) VALUES ($1, $2, $3, $4) RETURNING id"
 	_, err = tx.ExecContext(ctx, query, email, fullname, phone, hPassword)
 	unique := isUniqueViolation(err)
-	if unique && strings.Contains(err.Error(), "email") {
-		return ErrEmailTaken
+	if unique {
+		if strings.Contains(err.Error(), "email") {
+			return ErrEmailTaken
+		} else {
+			return ErrPhoneNumberTaken
+		}
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -76,7 +79,7 @@ func (s *Service) CreateFoodProvider(ctx context.Context, email, fullname, phone
 	}
 
 	if err != nil {
-		return fmt.Errorf("could not create user: %v", err)
+		return fmt.Errorf("could not create food provider: %v", err)
 	}
 
 	return nil

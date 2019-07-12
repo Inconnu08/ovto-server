@@ -45,6 +45,8 @@ var (
 	ErrInvalidPassword = errors.New("invalid password")
 	// ErrInvalidEmail denotes an invalid phone number.
 	ErrInvalidPhone = errors.New("invalid phone number")
+	// ErrPhoneNumberTaken denotes the phone number provided is taken
+	ErrPhoneNumberTaken = errors.New("phone number taken")
 )
 
 // User model.
@@ -88,6 +90,9 @@ func (s *Service) CreateUser(ctx context.Context, email, fullname, password stri
 	err = tx.QueryRowContext(ctx, query, email, fullname).Scan(&id)
 	log.Print("Returned user id: ", id)
 	unique := isUniqueViolation(err)
+	if !unique && err != nil {
+		return err
+	}
 	if unique && strings.Contains(err.Error(), "email") {
 		return ErrEmailTaken
 	}
@@ -111,6 +116,50 @@ func (s *Service) CreateUser(ctx context.Context, email, fullname, password stri
 
 	if err != nil {
 		return fmt.Errorf("could not create user: %v", err)
+	}
+
+	return nil
+}
+
+func (s *Service) UpdateUser(ctx context.Context, address, phone string) error {
+	uid, ok := ctx.Value(KeyAuthUserID).(int64)
+	if !ok {
+		return ErrUnauthenticated
+	}
+
+	address = strings.TrimSpace(address)
+
+	phone = strings.TrimSpace(phone)
+	if !rxPhone.MatchString(phone) {
+		return ErrInvalidPhone
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("could not begin tx: %v", err)
+	}
+	defer tx.Rollback()
+
+	if address != "" {
+		query := "UPDATE users SET address = $1 WHERE id = $2"
+		_, err = tx.ExecContext(ctx, query, address, uid)
+	}
+
+	if phone != "" {
+		query := "UPDATE users SET phone = $1 WHERE id = $2"
+		_, err = tx.ExecContext(ctx, query, phone, uid)
+	}
+
+	if err != nil {
+		return err
+	}
+
+	if err = tx.Commit(); err != nil {
+		return fmt.Errorf("could not commit transaction: %v", err)
+	}
+
+	if err != nil {
+		return fmt.Errorf("could not update user: %v", err)
 	}
 
 	return nil

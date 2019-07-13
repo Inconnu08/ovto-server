@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
-	"log"
 	"strconv"
 	"strings"
 	"time"
@@ -88,7 +87,6 @@ func (s *Service) AuthUserID(token string) (int64, error) {
 func (s *Service) AuthUser(ctx context.Context) (User, error) {
 	var u User
 	uid, ok := ctx.Value(KeyAuthUserID).(int64)
-	log.Println("UID: ", uid)
 	if !ok {
 		return u, ErrUnauthenticated
 	}
@@ -97,7 +95,6 @@ func (s *Service) AuthUser(ctx context.Context) (User, error) {
 
 	query := "SELECT fullname FROM users WHERE id = $1"
 	err := s.db.QueryRowContext(ctx, query, uid).Scan(&u.Fullname)
-	log.Println(err)
 	if err == sql.ErrNoRows {
 		return u, ErrUserNotFound
 	}
@@ -114,7 +111,6 @@ func (s *Service) AuthUser(ctx context.Context) (User, error) {
 func (s *Service) AuthFoodProvider(ctx context.Context) (User, error) {
 	var u User
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
-	log.Println("FP UID: ", uid)
 	if !ok {
 		return u, ErrUnauthenticated
 	}
@@ -123,7 +119,6 @@ func (s *Service) AuthFoodProvider(ctx context.Context) (User, error) {
 
 	query := "SELECT fullname FROM foodprovider WHERE id = $1"
 	err := s.db.QueryRowContext(ctx, query, uid).Scan(&u.Fullname)
-	log.Println(err)
 	if err == sql.ErrNoRows {
 		return u, ErrUserNotFound
 	}
@@ -161,7 +156,6 @@ func (s *Service) UserLogin(ctx context.Context, email string, password string) 
 	}
 
 	if err != nil {
-		log.Println("[UserLogin]: ", err)
 		return out, fmt.Errorf("could not query user %v\n", err)
 	}
 
@@ -220,7 +214,6 @@ func (s *Service) FacebookAuth(ctx context.Context, profile FacebookAuthOutput) 
 	//var avatar sql.NullString
 	query := "SELECT id, fullname FROM users WHERE email = $1"
 	err := s.db.QueryRowContext(ctx, query, profile.Email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname)
-	log.Println("[125]: ", err)
 	if err == sql.ErrNoRows {
 		query := "INSERT INTO users (email, fullname) VALUES ($1, $2) RETURNING id"
 		err = s.db.QueryRowContext(ctx, query, profile.Email, profile.Name).Scan(&out.AuthUser.ID)
@@ -251,7 +244,6 @@ func (s *Service) GoogleAuth(ctx context.Context, profile GoogleAuthOutput) (Log
 	//var avatar sql.NullString
 	query := "SELECT id, fullname FROM users WHERE email = $1"
 	err := s.db.QueryRowContext(ctx, query, profile.Email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname)
-	log.Println("[125]: ", err)
 	if err == sql.ErrNoRows {
 		query := "INSERT INTO users (email, fullname) VALUES ($1, $2) RETURNING id"
 		err = s.db.QueryRowContext(ctx, query, profile.Email, profile.Name).Scan(&out.AuthUser.ID)

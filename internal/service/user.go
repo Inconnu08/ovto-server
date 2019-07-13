@@ -9,7 +9,6 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
-	"log"
 	"os"
 	"path"
 	"regexp"
@@ -88,7 +87,6 @@ func (s *Service) CreateUser(ctx context.Context, email, fullname, password stri
 	var id int
 	query := "INSERT INTO users (email, fullname) VALUES ($1, $2) RETURNING id"
 	err = tx.QueryRowContext(ctx, query, email, fullname).Scan(&id)
-	log.Print("Returned user id: ", id)
 	unique := isUniqueViolation(err)
 	if !unique && err != nil {
 		return err
@@ -98,9 +96,6 @@ func (s *Service) CreateUser(ctx context.Context, email, fullname, password stri
 	}
 
 	hPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	log.Println(hPassword)
-	log.Println(string(hPassword))
-	log.Println([]byte(string(hPassword)))
 	if err != nil {
 		return err
 	}

@@ -18,6 +18,6 @@ require (
 	github.com/matryer/way v0.0.0-20180416093233-9632d0c407b0
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/ory/dockertest v3.3.4+incompatible
-	github.com/sirupsen/logrus v1.4.2 // indirect
+	github.com/sirupsen/logrus v1.4.2
 	golang.org/x/crypto v0.0.0-20190618222545-ea8f1a30c443
 )

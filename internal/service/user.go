@@ -160,6 +160,21 @@ func (s *Service) UpdateUser(ctx context.Context, address, phone string) error {
 	return nil
 }
 
+func (s *Service) DeleteUser(ctx context.Context) error {
+	uid, ok := ctx.Value(KeyAuthUserID).(int64)
+	if !ok {
+		return ErrUnauthenticated
+	}
+
+	query := "DELETE users WHERE id = $1"
+	_, err := s.db.ExecContext(ctx, query, uid)
+	if err != nil {
+		return fmt.Errorf("could not delete user: %v", err)
+	}
+
+	return nil
+}
+
 // UpdateDisplayPicture of the authenticated user returning the new avatar URL.
 func (s *Service) UpdateDisplayPicture(ctx context.Context, r io.Reader) (string, error) {
 	uid, ok := ctx.Value(KeyAuthUserID).(int64)

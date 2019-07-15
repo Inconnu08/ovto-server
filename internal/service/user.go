@@ -30,18 +30,18 @@ var (
 
 	// ErrUserNotFound denotes a not found user.
 	ErrUserNotFound = errors.New("user not found")
-	// ErrInvalidEmail denotes an invalid email address.
-	ErrInvalidEmail = errors.New("invalid email")
+	// ErrInvalidEmail denotes an invalid Email address.
+	ErrInvalidEmail = errors.New("invalid Email")
 	// ErrInvalidFullname denotes an invalid username.
-	ErrInvalidFullname = errors.New("invalid fullname")
-	// ErrEmailTaken denotes an email already taken.
-	ErrEmailTaken = errors.New("email taken")
+	ErrInvalidFullname = errors.New("invalid Fullname")
+	// ErrEmailTaken denotes an Email already taken.
+	ErrEmailTaken = errors.New("Email taken")
 	// ErrForbiddenFollow denotes a forbidden follow. Like following yourself.
 	ErrForbiddenFollow = errors.New("forbidden follow")
 	// ErrUnsupportedDisplayPictureFormat denotes an unsupported avatar image format.
 	ErrUnsupportedDisplayPictureFormat = errors.New("unsupported display picture format")
-	// ErrInvalidPassword denotes an invalid password which could not be hashed.
-	ErrInvalidPassword = errors.New("invalid password")
+	// ErrInvalidPassword denotes an invalid Password which could not be hashed.
+	ErrInvalidPassword = errors.New("invalid Password")
 	// ErrInvalidEmail denotes an invalid phone number.
 	ErrInvalidPhone = errors.New("invalid phone number")
 	// ErrPhoneNumberTaken denotes the phone number provided is taken
@@ -51,14 +51,14 @@ var (
 // User model.
 type User struct {
 	ID       int64  `json:"id,omitempty"`
-	Fullname string `json:"fullname"`
+	Fullname string `json:"Fullname"`
 	//AvatarURL *string `json:"avatarURL"`
 }
 
 // UserProfile model.
 type UserProfile struct {
 	User
-	Email          string `json:"email,omitempty"`
+	Email          string `json:"Email,omitempty"`
 	FollowersCount int    `json:"followersCount"`
 	FolloweesCount int    `json:"followeesCount"`
 	Me             bool   `json:"me"`
@@ -66,7 +66,7 @@ type UserProfile struct {
 	Followeed      bool   `json:"followeed"`
 }
 
-// CreateUser with the given email and name.
+// CreateUser with the given Email and name.
 func (s *Service) CreateUser(ctx context.Context, email, fullname, password string) error {
 	email = strings.TrimSpace(email)
 	if !rxEmail.MatchString(email) {
@@ -85,13 +85,13 @@ func (s *Service) CreateUser(ctx context.Context, email, fullname, password stri
 	defer tx.Rollback()
 
 	var id int
-	query := "INSERT INTO users (email, fullname) VALUES ($1, $2) RETURNING id"
+	query := "INSERT INTO users (Email, Fullname) VALUES ($1, $2) RETURNING id"
 	err = tx.QueryRowContext(ctx, query, email, fullname).Scan(&id)
 	unique := isUniqueViolation(err)
 	if !unique && err != nil {
 		return err
 	}
-	if unique && strings.Contains(err.Error(), "email") {
+	if unique {
 		return ErrEmailTaken
 	}
 
@@ -100,9 +100,9 @@ func (s *Service) CreateUser(ctx context.Context, email, fullname, password stri
 		return err
 	}
 
-	query = "INSERT INTO credentials (user_id , password) VALUES ($1, $2)"
+	query = "INSERT INTO credentials (user_id , Password) VALUES ($1, $2)"
 	if _, err = tx.ExecContext(ctx, query, id, hPassword); err != nil {
-		return fmt.Errorf("failed to save password: %v", err)
+		return fmt.Errorf("failed to save Password: %v", err)
 	}
 
 	if err = tx.Commit(); err != nil {

@@ -3,6 +3,13 @@ package service
 import (
 	"context"
 	"database/sql"
+	"github.com/google/go-cmp/cmp"
+	"net"
+	"net/url"
+	"runtime"
+	"testing"
+	"time"
+
 	"github.com/hako/branca"
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/stdlib"
@@ -10,11 +17,6 @@ import (
 	"github.com/ory/dockertest"
 	"github.com/ory/dockertest/docker"
 	"github.com/sirupsen/logrus"
-	"net"
-	"net/url"
-	"runtime"
-	"testing"
-	"time"
 )
 
 var (
@@ -105,9 +107,8 @@ func SetupTest() func() {
 	}
 
 	// When done, kill and remove the container
-	tearDown :=  func() {
+	tearDown := func() {
 		err = pool.Purge(resource)
-		log.Println("Purging...")
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -116,7 +117,21 @@ func SetupTest() func() {
 	return tearDown
 }
 
-func TestShouldReturnSomething(t *testing.T) {
+func TestService_CreateUser(t *testing.T) {
+	var tt = []struct {
+		Label     string
+		Condition string
+		Want      error
+		Email     string
+		Fullname  string
+		Password  string
+	}{
+		// success Condition
+		{Label: "Test should create user successfully", Condition: "success", Want: nil, Email: "johndoe@gmail.com", Fullname: "John Snow", Password: "ShesMyQueen"},
+		// error Condition
+		{Label: "Test should if Email taken", Condition: "fail", Want: ErrEmailTaken, Email: "johndoe@gmail.com", Fullname: "John Snow", Password: "ShesMyQueen"},
+	}
+
 	tearDown := SetupTest()
 	defer tearDown()
 
@@ -138,9 +153,19 @@ func TestShouldReturnSomething(t *testing.T) {
 
 	s := New(db, codec, url.URL{})
 
-	err = s.CreateUser(ctx, "apple@gmail.com", "wdwdewffwef", "eiuwfbwieubfiuwbef")
-	if err != nil {
-		t.Errorf(err.Error())
+	for _, test := range tt {
+		t.Run(test.Label, func(t *testing.T) {
+			Got := s.CreateUser(ctx, test.Email, test.Fullname, test.Password)
+			if test.Condition == "success" {
+				if Got != nil {
+					t.Error("Got:", Got, "| Want:", test.Want)
+				}
+			} else {
+				if !cmp.Equal(Got.Error(), test.Want.Error()) {
+					t.Error("Got:", Got, "| Want:", test.Want)
+				}
+			}
+		})
 	}
-}
 
+}

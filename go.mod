@@ -10,6 +10,7 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/eknkc/basex v1.0.0 // indirect
 	github.com/golang-migrate/migrate/v4 v4.4.0
+	github.com/google/go-cmp v0.3.0
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/hako/branca v0.0.0-20180808000428-10b799466ada
 	github.com/jackc/pgx v3.4.0+incompatible

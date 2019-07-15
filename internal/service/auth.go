@@ -42,14 +42,14 @@ type LoginOutput struct {
 
 type GoogleAuthOutput struct {
 	Name     string         `json:"name"`
-	Email    string         `json:"email"`
+	Email    string         `json:"Email"`
 	Picture  ProfilePicture `json:"picture"`
 }
 
 type FacebookAuthOutput struct {
 	Id       string         `json:"id"`
 	Name     string         `json:"name"`
-	Email    string         `json:"email"`
+	Email    string         `json:"Email"`
 	Birthday string         `json:"birthday"`
 	Picture  ProfilePicture `json:"picture"`
 }
@@ -93,7 +93,7 @@ func (s *Service) AuthUser(ctx context.Context) (User, error) {
 
 	//return s.userByID(ctx, uid)
 
-	query := "SELECT fullname FROM users WHERE id = $1"
+	query := "SELECT Fullname FROM users WHERE id = $1"
 	err := s.db.QueryRowContext(ctx, query, uid).Scan(&u.Fullname)
 	if err == sql.ErrNoRows {
 		return u, ErrUserNotFound
@@ -117,7 +117,7 @@ func (s *Service) AuthFoodProvider(ctx context.Context) (User, error) {
 
 	//return s.userByID(ctx, uid)
 
-	query := "SELECT fullname FROM foodprovider WHERE id = $1"
+	query := "SELECT Fullname FROM foodprovider WHERE id = $1"
 	err := s.db.QueryRowContext(ctx, query, uid).Scan(&u.Fullname)
 	if err == sql.ErrNoRows {
 		return u, ErrUserNotFound
@@ -141,14 +141,14 @@ func (s *Service) UserLogin(ctx context.Context, email string, password string) 
 	}
 
 	//var avatar sql.NullString
-	query := "SELECT id, fullname FROM users WHERE email = $1"
+	query := "SELECT id, Fullname FROM users WHERE Email = $1"
 	err := s.db.QueryRowContext(ctx, query, email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname)
 	if err == sql.ErrNoRows {
 		return out, ErrUserNotFound
 	}
 
 	var hPassword []byte
-	query = "SELECT password FROM credentials WHERE user_id = $1"
+	query = "SELECT Password FROM credentials WHERE user_id = $1"
 	err = s.db.QueryRowContext(ctx, query, out.AuthUser.ID).Scan(&hPassword)
 
 	if err == sql.ErrNoRows {
@@ -186,7 +186,7 @@ func (s *Service) FoodProviderLogin(ctx context.Context, email string, password 
 
 	//var avatar sql.NullString
 	var hPassword []byte
-	query := "SELECT id, fullname, password FROM foodprovider WHERE email = $1"
+	query := "SELECT id, Fullname, Password FROM foodprovider WHERE Email = $1"
 	err := s.db.QueryRowContext(ctx, query, email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname, &hPassword)
 	if err == sql.ErrNoRows {
 		return out, ErrUserNotFound
@@ -212,13 +212,13 @@ func (s *Service) FacebookAuth(ctx context.Context, profile FacebookAuthOutput) 
 	var out LoginOutput
 
 	//var avatar sql.NullString
-	query := "SELECT id, fullname FROM users WHERE email = $1"
+	query := "SELECT id, Fullname FROM users WHERE Email = $1"
 	err := s.db.QueryRowContext(ctx, query, profile.Email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname)
 	if err == sql.ErrNoRows {
-		query := "INSERT INTO users (email, fullname) VALUES ($1, $2) RETURNING id"
+		query := "INSERT INTO users (Email, Fullname) VALUES ($1, $2) RETURNING id"
 		err = s.db.QueryRowContext(ctx, query, profile.Email, profile.Name).Scan(&out.AuthUser.ID)
 		unique := isUniqueViolation(err)
-		if unique && strings.Contains(err.Error(), "email") {
+		if unique && strings.Contains(err.Error(), "Email") {
 			return out, ErrEmailTaken
 		}
 
@@ -242,13 +242,13 @@ func (s *Service) GoogleAuth(ctx context.Context, profile GoogleAuthOutput) (Log
 	var out LoginOutput
 
 	//var avatar sql.NullString
-	query := "SELECT id, fullname FROM users WHERE email = $1"
+	query := "SELECT id, Fullname FROM users WHERE Email = $1"
 	err := s.db.QueryRowContext(ctx, query, profile.Email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname)
 	if err == sql.ErrNoRows {
-		query := "INSERT INTO users (email, fullname) VALUES ($1, $2) RETURNING id"
+		query := "INSERT INTO users (Email, Fullname) VALUES ($1, $2) RETURNING id"
 		err = s.db.QueryRowContext(ctx, query, profile.Email, profile.Name).Scan(&out.AuthUser.ID)
 		unique := isUniqueViolation(err)
-		if unique && strings.Contains(err.Error(), "email") {
+		if unique && strings.Contains(err.Error(), "Email") {
 			return out, ErrEmailTaken
 		}
 

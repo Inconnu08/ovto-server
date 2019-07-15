@@ -20,14 +20,14 @@ import (
 // FoodProvider model
 type FoodProvider struct {
 	ID       int64  `json:"id,omitempty"`
-	Fullname string `json:"fullname"`
+	Fullname string `json:"Fullname"`
 	//AvatarURL *string `json:"avatarURL"`
 }
 
 // FoodProvider profile model
 type FoodProviderProfile struct {
 	FoodProvider
-	Email          string `json:"email,omitempty"`
+	Email          string `json:"Email,omitempty"`
 	FollowersCount int    `json:"followersCount"`
 	FolloweesCount int    `json:"followeesCount"`
 	Me             bool   `json:"me"`
@@ -35,7 +35,7 @@ type FoodProviderProfile struct {
 	Followeed      bool   `json:"followeed"`
 }
 
-// CreateUser with the given email and name.
+// CreateUser with the given Email and name.
 func (s *Service) CreateFoodProvider(ctx context.Context, email, fullname, phone, password string) error {
 	email = strings.TrimSpace(email)
 	if !rxEmail.MatchString(email) {
@@ -63,11 +63,11 @@ func (s *Service) CreateFoodProvider(ctx context.Context, email, fullname, phone
 		return err
 	}
 
-	query := "INSERT INTO foodprovider (email, fullname, phone, password) VALUES ($1, $2, $3, $4) RETURNING id"
+	query := "INSERT INTO foodprovider (Email, Fullname, phone, Password) VALUES ($1, $2, $3, $4) RETURNING id"
 	_, err = tx.ExecContext(ctx, query, email, fullname, phone, hPassword)
 	unique := isUniqueViolation(err)
 	if unique {
-		if strings.Contains(err.Error(), "email") {
+		if strings.Contains(err.Error(), "Email") {
 			return ErrEmailTaken
 		} else {
 			return ErrPhoneNumberTaken

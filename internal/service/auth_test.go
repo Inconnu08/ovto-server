@@ -21,7 +21,7 @@ func TestService_UserLogin(t *testing.T) {
 		Password    string
 	}{
 		// success Condition
-		{Label: "Test should login user successfully", Condition: "success", Want: nil, Email: "johndoe@gmail.com", LookupEmail: "johndoe@gmail.com", Password: "Demogorgan"},
+		{Label: "Test should successfully login user", Condition: "success", Want: nil, Email: "johndoe@gmail.com", LookupEmail: "johndoe@gmail.com", Password: "Demogorgan"},
 		// error Condition
 		{Label: "Test should fail with user not found", Condition: "fail", Want: ErrUserNotFound, Email: "johndoe@gmail.com", LookupEmail: "Demogorgan@gmail.com", Password: "Demogorgan"},
 		{Label: "Test should fail with invalid password", Condition: "fail", Want: ErrInvalidPassword, Email: "johndoe@gmail.com", LookupEmail: "johndoe@gmail.com", Password: "something"},

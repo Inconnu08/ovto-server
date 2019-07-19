@@ -80,6 +80,7 @@ func (s *Service) AuthUserID(token string) (int64, error) {
 	if err != nil {
 		return 0, fmt.Errorf("could not parse auth user id from token: %v", err)
 	}
+
 	return i, nil
 }
 
@@ -150,7 +151,6 @@ func (s *Service) UserLogin(ctx context.Context, email string, password string) 
 	var hPassword []byte
 	query = "SELECT Password FROM credentials WHERE user_id = $1"
 	err = s.db.QueryRowContext(ctx, query, out.AuthUser.ID).Scan(&hPassword)
-
 	if err == sql.ErrNoRows {
 		return out, ErrUserNotFound
 	}

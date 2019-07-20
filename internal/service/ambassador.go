@@ -46,10 +46,10 @@ func (s *Service) CreateAmbassador(ctx context.Context, email, fullname, phone, 
 		if strings.Contains(err.Error(), "email") {
 			return ErrEmailTaken
 		}
-		if strings.Contains(err.Error(), "phone"){
+		if strings.Contains(err.Error(), "phone") {
 			return ErrPhoneNumberTaken
 		}
-		if strings.Contains(err.Error(), "referral_code"){
+		if strings.Contains(err.Error(), "referral_code") {
 			retry += 1
 			goto RETRY
 		}
@@ -66,18 +66,18 @@ func (s *Service) CreateAmbassador(ctx context.Context, email, fullname, phone, 
 	return nil
 }
 
-func (s *Service) UpdateAmbassador(ctx context.Context, address, phone string) error {
-	uid, ok := ctx.Value(KeyAuthUserID).(int64)
+func (s *Service) UpdateAmbassador(ctx context.Context, fb, city, area, address, bkash, rocket string) error {
+	uid, ok := ctx.Value(KeyAuthAmbassadorID).(int64)
 	if !ok {
 		return ErrUnauthenticated
 	}
 
+	fb = strings.TrimSpace(fb)
+	city = strings.TrimSpace(city)
+	area = strings.TrimSpace(area)
 	address = strings.TrimSpace(address)
-
-	phone = strings.TrimSpace(phone)
-	if !rxPhone.MatchString(phone) {
-		return ErrInvalidPhone
-	}
+	bkash = strings.TrimSpace(bkash)
+	rocket = strings.TrimSpace(rocket)
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -85,25 +85,32 @@ func (s *Service) UpdateAmbassador(ctx context.Context, address, phone string) e
 	}
 	defer tx.Rollback()
 
+	if fb != "" {
+		query := "UPDATE Ambassador SET fb = $1 WHERE id = $2"
+		_, err = tx.ExecContext(ctx, query, fb, uid)
+	}
+	if city != "" {
+		query := "UPDATE Ambassador SET city = $1 WHERE id = $2"
+		_, err = tx.ExecContext(ctx, query, city, uid)
+	}
+	if area != "" {
+		query := "UPDATE Ambassador SET area = $1 WHERE id = $2"
+		_, err = tx.ExecContext(ctx, query, area, uid)
+	}
 	if address != "" {
-		query := "UPDATE users SET address = $1 WHERE id = $2"
+		query := "UPDATE Ambassador SET address = $1 WHERE id = $2"
 		_, err = tx.ExecContext(ctx, query, address, uid)
 	}
-
-	if phone != "" {
-		query := "UPDATE users SET phone = $1 WHERE id = $2"
-		_, err = tx.ExecContext(ctx, query, phone, uid)
+	if bkash != "" {
+		query := "UPDATE Ambassador SET bkash = $1 WHERE id = $2"
+		_, err = tx.ExecContext(ctx, query, bkash, uid)
 	}
-
-	if err != nil {
-		return err
+	if rocket != "" {
+		query := "UPDATE Ambassador SET rocket = $1 WHERE id = $2"
+		_, err = tx.ExecContext(ctx, query, rocket, uid)
 	}
 
 	if err = tx.Commit(); err != nil {
-		return fmt.Errorf("could not commit transaction: %v", err)
-	}
-
-	if err != nil {
 		return fmt.Errorf("could not update user: %v", err)
 	}
 

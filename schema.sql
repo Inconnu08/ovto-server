@@ -37,11 +37,14 @@ CREATE TABLE IF NOT EXISTS Ambassador
     email           VARCHAR NOT NULL UNIQUE,
     fullname        VARCHAR(50) NOT NULL,
     phone           VARCHAR NOT NULL UNIQUE,
+    bkash           VARCHAR,
+    rocket          VARCHAR,
     password        VARCHAR NOT NULL,
     facebook        VARCHAR NOT NULL,
     city            VARCHAR NOT NULL,
     area            VARCHAR NOT NULL,
     address         VARCHAR NOT NULL,
+    referral_code   varchar NOT NULL UNIQUE,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 

@@ -15,10 +15,11 @@ import (
 type key string
 
 const (
-	TokenLifeSpan     = time.Hour * 1
+	TokenLifeSpan = time.Hour * 1
 	// These are used in context.
 	KeyAuthUserID         key = "auth_user_id"
-	KeyAuthFoodProviderID key = "auth_foodprovider_id"
+	KeyAuthFoodProviderID key = "auth_food_provider_id"
+	KeyAuthAmbassadorID   key = "auth_ambassador_id"
 )
 
 var (
@@ -41,9 +42,9 @@ type LoginOutput struct {
 }
 
 type GoogleAuthOutput struct {
-	Name     string         `json:"name"`
-	Email    string         `json:"Email"`
-	Picture  ProfilePicture `json:"picture"`
+	Name    string         `json:"name"`
+	Email   string         `json:"Email"`
+	Picture ProfilePicture `json:"picture"`
 }
 
 type FacebookAuthOutput struct {
@@ -66,7 +67,6 @@ type PictureData struct {
 }
 
 type ThirdPartyProfile interface {
-
 }
 
 // AuthUserID is used to decode token

@@ -3,13 +3,14 @@ package main
 import (
 	"database/sql"
 	"fmt"
-	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"time"
 
 	"github.com/hako/branca"
 	_ "github.com/jackc/pgx/stdlib"
+	"github.com/sirupsen/logrus"
 
 	"ovto/internal/handler"
 	"ovto/internal/service"
@@ -23,20 +24,28 @@ func main() {
 		tokenKey  = env("TOKEN_KEY", "supersecretkeyyoushouldnotcommit")
 	)
 
+	log := logrus.New()
+	log.Formatter = &logrus.TextFormatter{
+		TimestampFormat: time.RFC3339,
+		FullTimestamp:   true,
+		ForceColors:     true,
+	}
+	log.SetReportCaller(true)
+
 	origin, err := url.Parse(originStr)
 	if err != nil || !origin.IsAbs() {
-		log.Fatalf("invalid origin url: %v\n", err)
+		log.WithError(err).Fatal("invalid origin url:")
 		return
 	}
 
 	db, err := sql.Open("pgx", dbURL)
 	if err != nil {
-		log.Fatalf("cound not open db connection: %v\n", err)
+		log.Fatalf("\nCould not open db connection: %v\n")
 		return
 	}
 
 	if err := service.ValidateSchema(db); err != nil {
-		log.Fatalf("failed to validate schema: %v\n", err)
+		log.Fatalf("\nFailed to validate schema: %v\n", err)
 	}
 
 	defer func() {
@@ -68,7 +77,7 @@ func main() {
 	//}()
 
 	addr := fmt.Sprintf(":%s", port)
-	log.Printf("accepting connections on port: %s\n", port)
+	log.Infof("accepting connections on port: %s\n", port)
 	if err := http.ListenAndServe(addr, h); err != nil {
 		log.Fatalf("could not start server: %v\n", err)
 	}

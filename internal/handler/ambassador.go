@@ -18,6 +18,17 @@ type createAmbassadorInput struct {
 	Password string `json:"password"`
 }
 
+type bkashInput struct {
+	Password string `json:"password"`
+	Bkash    string `json:"bkash"`
+}
+
+type rocketInput struct {
+	Password string `json:"password"`
+	Rocket    string `json:"rocket"`
+}
+
+
 func (h *handler) createAmbassador(w http.ResponseWriter, r *http.Request) {
 	var in createAmbassadorInput
 
@@ -27,7 +38,7 @@ func (h *handler) createAmbassador(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.CreateAmbassador(r.Context(), in.Email, in.Fullname, in.Phone,in.Facebook, in.City, in.Area, in.Address, in.Password)
+	err := h.CreateAmbassador(r.Context(), in.Email, in.Fullname, in.Phone, in.Facebook, in.City, in.Area, in.Address, in.Password)
 	if err == service.ErrInvalidEmail || err == service.ErrInvalidFullname || err == service.ErrInvalidPhone {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
@@ -44,4 +55,70 @@ func (h *handler) createAmbassador(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(http.StatusNoContent)
+}
+
+func (h *handler) addBkashNumber(w http.ResponseWriter, r *http.Request) {
+	var in bkashInput
+
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := h.AddBkashNumber(r.Context(), in.Password, in.Bkash)
+	if err == service.ErrUnauthenticated || err == service.ErrInvalidPassword{
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err == service.ErrUserNotFound {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	if err == service.ErrEmptyValue {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	if err != nil {
+		respondErr(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func (h *handler) addRocketNumber(w http.ResponseWriter, r *http.Request) {
+	var in rocketInput
+
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := h.AddRocketNumber(r.Context(), in.Password, in.Rocket)
+	if err == service.ErrUnauthenticated || err == service.ErrInvalidPassword{
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err == service.ErrUserNotFound {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	if err == service.ErrEmptyValue {
+		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
+		return
+	}
+
+	if err != nil {
+		respondErr(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

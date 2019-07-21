@@ -33,6 +33,8 @@ var (
 	ErrInvalidVerificationCode = errors.New("invalid verification code")
 	// ErrVerificationCodeNotFound denotes a not found verification code.
 	ErrVerificationCodeNotFound = errors.New("verification code not found")
+    // ErrEmptyValue denotes a input value cannot be empty.
+	ErrEmptyValue = errors.New("value cannot be empty")
 )
 
 type LoginOutput struct {

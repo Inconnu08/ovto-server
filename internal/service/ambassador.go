@@ -67,7 +67,7 @@ func (s *Service) CreateAmbassador(ctx context.Context, email, fullname, phone, 
 	return nil
 }
 
-func (s *Service) UpdateAmbassador(ctx context.Context, fb, city, area, address, bkash, rocket string) error {
+func (s *Service) UpdateAmbassador(ctx context.Context, fb, city, area, address string) error {
 	uid, ok := ctx.Value(KeyAuthAmbassadorID).(int64)
 	if !ok {
 		return ErrUnauthenticated
@@ -77,8 +77,6 @@ func (s *Service) UpdateAmbassador(ctx context.Context, fb, city, area, address,
 	city = strings.TrimSpace(city)
 	area = strings.TrimSpace(area)
 	address = strings.TrimSpace(address)
-	bkash = strings.TrimSpace(bkash)
-	rocket = strings.TrimSpace(rocket)
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -102,10 +100,6 @@ func (s *Service) UpdateAmbassador(ctx context.Context, fb, city, area, address,
 		query := "UPDATE Ambassador SET address = $1 WHERE id = $2"
 		_, err = tx.ExecContext(ctx, query, address, uid)
 	}
-	if rocket != "" {
-		query := "UPDATE Ambassador SET rocket = $1 WHERE id = $2"
-		_, err = tx.ExecContext(ctx, query, rocket, uid)
-	}
 
 	if err = tx.Commit(); err != nil {
 		return fmt.Errorf("could not update user: %v", err)
@@ -114,6 +108,7 @@ func (s *Service) UpdateAmbassador(ctx context.Context, fb, city, area, address,
 	return nil
 }
 
+// AddpaymentMethod is a generic function for adding any sort of payment method for example bkash, rocket etc.
 func (s *Service) AddPaymentMethod(ctx context.Context, password, method, number, remove string) error {
 	uid, ok := ctx.Value(KeyAuthAmbassadorID).(int64)
 	if !ok {

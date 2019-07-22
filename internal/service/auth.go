@@ -210,6 +210,39 @@ func (s *Service) FoodProviderLogin(ctx context.Context, email string, password 
 	return out, nil
 }
 
+func (s *Service) AmbassadorLogin(ctx context.Context, email string, password string) (LoginOutput, error) {
+	var out LoginOutput
+
+	password = strings.TrimSpace(password)
+	email = strings.TrimSpace(email)
+	if !rxEmail.MatchString(email) {
+		return out, ErrInvalidEmail
+	}
+
+	//var avatar sql.NullString
+	var hPassword []byte
+	query := "SELECT id, Fullname, Password FROM Ambassador WHERE Email = $1"
+	err := s.db.QueryRowContext(ctx, query, email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname, &hPassword)
+	if err == sql.ErrNoRows {
+		return out, ErrUserNotFound
+	}
+
+	if err = bcrypt.CompareHashAndPassword(hPassword, []byte(password)); err != nil {
+		return out, ErrInvalidPassword
+	}
+
+	//out.AuthUser.AvatarURL = s.avatarURL(avatar)
+
+	out.Token, err = s.codec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
+	if err != nil {
+		return out, fmt.Errorf("could not generate token: %v", err)
+	}
+
+	out.ExpiresAt = time.Now().Add(TokenLifeSpan)
+
+	return out, nil
+}
+
 func (s *Service) FacebookAuth(ctx context.Context, profile FacebookAuthOutput) (LoginOutput, error) {
 	var out LoginOutput
 

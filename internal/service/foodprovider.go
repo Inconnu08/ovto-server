@@ -151,3 +151,37 @@ func (s *Service) UpdateFPDisplayPicture(ctx context.Context, r io.Reader) (stri
 
 	return dpURL.String(), nil
 }
+
+func (s *Service) ChangeFoodProviderPassword(ctx context.Context, oldPassword, newPassword string) error {
+	uid, ok := ctx.Value(KeyAuthAmbassadorID).(int64)
+	if !ok {
+		return ErrUnauthenticated
+	}
+
+	oldPassword = strings.TrimSpace(oldPassword)
+	newPassword = strings.TrimSpace(newPassword)
+
+	var hPassword []byte
+	query := "SELECT Password FROM foodprovider WHERE id = $1"
+	err := s.db.QueryRowContext(ctx, query, uid).Scan(&hPassword)
+	if err == sql.ErrNoRows {
+		return ErrUserNotFound
+	}
+
+	if err := bcrypt.CompareHashAndPassword(hPassword, []byte(oldPassword)); err != nil {
+		return ErrInvalidPassword
+	}
+
+	hPassword, err = bcrypt.GenerateFromPassword([]byte(newPassword), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	query = "UPDATE foodprovider password = $2 WHERE id = $1"
+	_, err = s.db.ExecContext(ctx, query, uid, hPassword)
+	if err != nil {
+		return fmt.Errorf("could not update password: %v", err)
+	}
+
+	return nil
+}

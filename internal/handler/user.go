@@ -19,6 +19,11 @@ type updateUserInput struct {
 	Phone   string `json:"phone"`
 }
 
+type ChangePasswordInput struct {
+	OldPassword   string `json:"old_password"`
+	NewPassword   string `json:"new_password"`
+}
+
 func (h *handler) createUser(w http.ResponseWriter, r *http.Request) {
 	var in createUserInput
 
@@ -110,4 +115,32 @@ func (h *handler) updateDisplayPicture(w http.ResponseWriter, r *http.Request) {
 	}
 
 	fmt.Fprint(w, avatarURL)
+}
+
+func (h *handler) changeUserPassword(w http.ResponseWriter, r *http.Request) {
+	var in ChangePasswordInput
+
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	err := h.ChangeUserPassword(r.Context(), in.OldPassword, in.NewPassword)
+	if err == service.ErrUnauthenticated || err == service.ErrInvalidPassword {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err == service.ErrUserNotFound {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		respondErr(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

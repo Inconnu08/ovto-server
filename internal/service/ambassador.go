@@ -8,6 +8,18 @@ import (
 	"strings"
 )
 
+type Ambassador struct {
+	ID       int64  `json:"id,omitempty"`
+	Fullname string `json:"fullname"`
+	Email    string `json:"email"`
+	Phone    string `json:"phone"`
+	Facebook string `json:"facebook"`
+	City     string `json:"city"`
+	Area     string `json:"area"`
+	Address  string `json:"address"`
+	Password string `json:"password"`
+}
+
 // Create Ambassador with the given details.
 func (s *Service) CreateAmbassador(ctx context.Context, email, fullname, phone, fb, city, area, address, password string) error {
 	email = strings.TrimSpace(email)
@@ -36,7 +48,7 @@ func (s *Service) CreateAmbassador(ctx context.Context, email, fullname, phone, 
 		return err
 	}
 
-	RETRY:
+RETRY:
 	var retry int
 	query := "INSERT INTO Ambassador (email, fullname, phone, fb, city, area, address, password, referral_code)" +
 		" VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id"
@@ -108,6 +120,42 @@ func (s *Service) UpdateAmbassador(ctx context.Context, fb, city, area, address 
 	return nil
 }
 
+func (s *Service) GetAmbassadorById(ctx context.Context, id int64) (Ambassador, error) {
+	var u Ambassador
+	//var avatar sql.NullString
+	query := "SELECT fullname, phone, fb, city, area, address FROM Ambassador WHERE id = $1"
+	err := s.db.QueryRowContext(ctx, query, id).Scan()
+	if err == sql.ErrNoRows {
+		return u, ErrUserNotFound
+	}
+
+	if err != nil {
+		return u, fmt.Errorf("could not query selected user: %v", err)
+	}
+
+	u.ID = id
+
+	return u, nil
+}
+
+func (s *Service) GetAmbassadorByName(ctx context.Context, name string) (Ambassador, error) {
+	var u Ambassador
+	//var avatar sql.NullString
+	query := "SELECT phone, fb, city, area, address FROM Ambassador WHERE fullname = $1"
+	err := s.db.QueryRowContext(ctx, query, name).Scan()
+	if err == sql.ErrNoRows {
+		return u, ErrUserNotFound
+	}
+
+	if err != nil {
+		return u, fmt.Errorf("could not query selected user: %v", err)
+	}
+
+	u.Fullname = name
+
+	return u, nil
+}
+
 // AddpaymentMethod is a generic function for adding any sort of payment method for example bkash, rocket etc.
 func (s *Service) AddPaymentMethod(ctx context.Context, password, method, number, remove string) error {
 	uid, ok := ctx.Value(KeyAuthAmbassadorID).(int64)
@@ -148,11 +196,11 @@ func (s *Service) AddPaymentMethod(ctx context.Context, password, method, number
 }
 
 func (s *Service) AddBkashNumber(ctx context.Context, password, bkash string) error {
-	return s.AddPaymentMethod(ctx,password, "bkash", bkash, "rocket")
+	return s.AddPaymentMethod(ctx, password, "bkash", bkash, "rocket")
 }
 
 func (s *Service) AddRocketNumber(ctx context.Context, password, rocket string) error {
-	return s.AddPaymentMethod(ctx,password, "rocket", rocket, "bkash")
+	return s.AddPaymentMethod(ctx, password, "rocket", rocket, "bkash")
 }
 
 func (s *Service) ChangeAmbassadorPassword(ctx context.Context, oldPassword, newPassword string) error {

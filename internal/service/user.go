@@ -35,7 +35,9 @@ var (
 	// ErrInvalidFullname denotes an invalid username.
 	ErrInvalidFullname = errors.New("invalid Fullname")
 	// ErrEmailTaken denotes an Email already taken.
-	ErrEmailTaken = errors.New("Email taken")
+	ErrEmailTaken = errors.New("email taken")
+	// ErrTitleTaken denotes a restaurant with that title already exists.
+	ErrTitleTaken = errors.New("title taken")
 	// ErrForbiddenFollow denotes a forbidden follow. Like following yourself.
 	ErrForbiddenFollow = errors.New("forbidden follow")
 	// ErrUnsupportedDisplayPictureFormat denotes an unsupported avatar image format.

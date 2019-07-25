@@ -48,10 +48,10 @@ CREATE TABLE IF NOT EXISTS ambassador
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS restuarant
+CREATE TABLE IF NOT EXISTS restaurant
 (
-    id              SERIAL  NOT NULL PRIMARY KEY,
-    title           VARCHAR(50) NOT NULL,
+    id              SERIAL NOT NULL PRIMARY KEY,
+    title           VARCHAR(50) NOT NULL UNIQUE,
     owner_id        INT NOT NULL REFERENCES foodprovider,
     about           VARCHAR,
     location        VARCHAR NOT NULL,

@@ -156,7 +156,7 @@ func (s *Service) GetAmbassadorByName(ctx context.Context, name string) (Ambassa
 	return u, nil
 }
 
-// AddpaymentMethod is a generic function for adding any sort of payment method for example bkash, rocket etc.
+// AddPaymentMethod is a generic function for adding any sort of payment method for example bkash, rocket etc.
 func (s *Service) AddPaymentMethod(ctx context.Context, password, method, number, remove string) error {
 	uid, ok := ctx.Value(KeyAuthAmbassadorID).(int64)
 	if !ok {

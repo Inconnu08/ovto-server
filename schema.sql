@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS foodprovider
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS Ambassador
+CREATE TABLE IF NOT EXISTS ambassador
 (
     id              SERIAL  NOT NULL PRIMARY KEY,
     email           VARCHAR NOT NULL UNIQUE,
@@ -51,9 +51,9 @@ CREATE TABLE IF NOT EXISTS Ambassador
 CREATE TABLE IF NOT EXISTS restuarant
 (
     id              SERIAL  NOT NULL PRIMARY KEY,
-    name            VARCHAR(50) NOT NULL UNIQUE,
+    title           VARCHAR(50) NOT NULL,
     owner_id        INT NOT NULL REFERENCES foodprovider,
-    about           VARCHAR(50) NOT NULL UNIQUE,
+    about           VARCHAR,
     location        VARCHAR NOT NULL,
     city            VARCHAR NOT NULL,
     area            VARCHAR NOT NULL,
@@ -62,6 +62,7 @@ CREATE TABLE IF NOT EXISTS restuarant
     opening_time    VARCHAR NOT NULL,
     closing_time    VARCHAR NOT NULL,
     ambassador_code VARCHAR,
+    active          BOOLEAN NOT NULL DEFAULT true,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 -- INSERT INTO users (id, email, fullname)

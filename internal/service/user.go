@@ -125,11 +125,7 @@ func (s *Service) UpdateUser(ctx context.Context, address, phone string) error {
 	}
 
 	address = strings.TrimSpace(address)
-
 	phone = strings.TrimSpace(phone)
-	if !rxPhone.MatchString(phone) {
-		return ErrInvalidPhone
-	}
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -143,6 +139,9 @@ func (s *Service) UpdateUser(ctx context.Context, address, phone string) error {
 	}
 
 	if phone != "" {
+		if !rxPhone.MatchString(phone) {
+			return ErrInvalidPhone
+		}
 		query := "UPDATE users SET phone = $1 WHERE id = $2"
 		_, err = tx.ExecContext(ctx, query, phone, uid)
 	}

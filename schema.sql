@@ -1,3 +1,5 @@
+-- CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+
 DROP DATABASE IF EXISTS ovto CASCADE;
 CREATE DATABASE IF NOT EXISTS ovto;
 SET DATABASE = ovto;
@@ -50,7 +52,7 @@ CREATE TABLE IF NOT EXISTS ambassador
 
 CREATE TABLE IF NOT EXISTS restaurant
 (
-    id              SERIAL NOT NULL PRIMARY KEY,
+    id              UUID NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
     title           VARCHAR(50) NOT NULL UNIQUE,
     owner_id        INT NOT NULL REFERENCES foodprovider,
     about           VARCHAR,
@@ -62,7 +64,9 @@ CREATE TABLE IF NOT EXISTS restaurant
     opening_time    VARCHAR NOT NULL,
     closing_time    VARCHAR NOT NULL,
     ambassador_code VARCHAR,
+    vat_reg_no      VARCHAR,
     active          BOOLEAN NOT NULL DEFAULT true,
+    close_status    BOOLEAN NOT NULL DEFAULT true,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 -- INSERT INTO users (id, email, fullname)

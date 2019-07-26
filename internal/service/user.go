@@ -26,7 +26,9 @@ var (
 	rxEmail    = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 	rxFullname = regexp.MustCompile(`^[a-zA-Z ]{0,20}$`)
 	rxPhone    = regexp.MustCompile(`(^([+]{1}[8]{2}|0088)?(01){1}[5-9]{1}\d{8})$`)
-	dpDir      = path.Join("web", "static", "img", "dp")
+	rxUUID     = regexp.MustCompile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
+
+	dpDir = path.Join("web", "static", "img", "dp")
 
 	// ErrUserNotFound denotes a not found user.
 	ErrUserNotFound = errors.New("user not found")
@@ -38,10 +40,12 @@ var (
 	ErrEmailTaken = errors.New("email taken")
 	// ErrTitleTaken denotes a restaurant with that title already exists.
 	ErrTitleTaken = errors.New("title taken")
+	// ErrUnauthenticated denotes no authenticated user in context.
+	ErrInvalidRestaurantId = errors.New("invalid restaurant ID")
 	// ErrForbiddenFollow denotes a forbidden follow. Like following yourself.
 	ErrForbiddenFollow = errors.New("forbidden follow")
-	// ErrUnsupportedDisplayPictureFormat denotes an unsupported avatar image format.
-	ErrUnsupportedDisplayPictureFormat = errors.New("unsupported display picture format")
+	// ErrUnsupportedPictureFormat denotes an unsupported avatar image format.
+	ErrUnsupportedPictureFormat = errors.New("unsupported picture format")
 	// ErrInvalidPassword denotes an invalid Password which could not be hashed.
 	ErrInvalidPassword = errors.New("invalid Password")
 	// ErrInvalidEmail denotes an invalid phone number.
@@ -187,7 +191,7 @@ func (s *Service) UpdateDisplayPicture(ctx context.Context, r io.Reader) (string
 	r = io.LimitReader(r, MaxAvatarBytes)
 	img, format, err := image.Decode(r)
 	if err == image.ErrFormat {
-		return "", ErrUnsupportedDisplayPictureFormat
+		return "", ErrUnsupportedPictureFormat
 	}
 
 	if err != nil {
@@ -195,7 +199,7 @@ func (s *Service) UpdateDisplayPicture(ctx context.Context, r io.Reader) (string
 	}
 
 	if format != "png" && format != "jpeg" {
-		return "", ErrUnsupportedDisplayPictureFormat
+		return "", ErrUnsupportedPictureFormat
 	}
 
 	dp, err := gonanoid.Nanoid()
@@ -239,7 +243,7 @@ func (s *Service) UpdateDisplayPicture(ctx context.Context, r io.Reader) (string
 		defer os.Remove(path.Join(dpDir, oldDp.String))
 	}
 	dpURL := s.origin
-	dpURL.Path = "/img/dp/" + dp
+	dpURL.Path = "/img/user/dp/" + dp
 
 	return dpURL.String(), nil
 }

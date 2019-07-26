@@ -95,7 +95,7 @@ func (s *Service) UpdateFPDisplayPicture(ctx context.Context, r io.Reader) (stri
 	r = io.LimitReader(r, MaxAvatarBytes)
 	img, format, err := image.Decode(r)
 	if err == image.ErrFormat {
-		return "", ErrUnsupportedDisplayPictureFormat
+		return "", ErrUnsupportedPictureFormat
 	}
 
 	if err != nil {
@@ -103,7 +103,7 @@ func (s *Service) UpdateFPDisplayPicture(ctx context.Context, r io.Reader) (stri
 	}
 
 	if format != "png" && format != "jpeg" {
-		return "", ErrUnsupportedDisplayPictureFormat
+		return "", ErrUnsupportedPictureFormat
 	}
 
 	dp, err := gonanoid.Nanoid()

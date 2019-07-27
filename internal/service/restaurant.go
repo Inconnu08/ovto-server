@@ -186,7 +186,7 @@ func (s *Service) UpdateRestaurantStatus(ctx context.Context, id string, closed 
 }
 
 // UpdateRestaurantCoverPicture of the authenticated restaurant returning the new avatar URL.
-func (s *Service) UpdateRestaurantCoverPicture(ctx context.Context, r io.Reader, id string) (string, error) {
+func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reader, id string) (string, error) {
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	if !ok {
 		return "", ErrUnauthenticated
@@ -221,7 +221,12 @@ func (s *Service) UpdateRestaurantCoverPicture(ctx context.Context, r io.Reader,
 		dp += ".jpg"
 	}
 
-	displayPicturePath := path.Join(dpDir, dp)
+	displayPicturePath := path.Join(userDpDir, id)
+	if _, err := os.Stat(displayPicturePath); os.IsNotExist(err) {
+		err = os.Mkdir(displayPicturePath, os.ModeDir)
+		return "", fmt.Errorf("failed to create path for image: %v", err)
+	}
+	displayPicturePath = path.Join(displayPicturePath, dp)
 	f, err := os.Create(displayPicturePath)
 	if err != nil {
 		return "", fmt.Errorf("could not create dp file: %v", err)
@@ -248,10 +253,10 @@ func (s *Service) UpdateRestaurantCoverPicture(ctx context.Context, r io.Reader,
 	}
 
 	if oldDp.Valid {
-		defer os.Remove(path.Join(dpDir, oldDp.String))
+		defer os.Remove(path.Join(restaurantDpDir, id, oldDp.String))
 	}
 	dpURL := s.origin
-	dpURL.Path = "/img/user/dp/" + dp
+	dpURL.Path = "/img/restaurant/dp/" + dp
 
 	return dpURL.String(), nil
 }

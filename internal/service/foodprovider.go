@@ -117,7 +117,7 @@ func (s *Service) UpdateFPDisplayPicture(ctx context.Context, r io.Reader) (stri
 		dp += ".jpg"
 	}
 
-	displayPicturePath := path.Join(dpDir, dp)
+	displayPicturePath := path.Join(userDpDir, dp)
 	f, err := os.Create(displayPicturePath)
 	if err != nil {
 		return "", fmt.Errorf("could not create dp file: %v", err)
@@ -144,7 +144,7 @@ func (s *Service) UpdateFPDisplayPicture(ctx context.Context, r io.Reader) (stri
 	}
 
 	if oldDp.Valid {
-		defer os.Remove(path.Join(dpDir, oldDp.String))
+		defer os.Remove(path.Join(userDpDir, oldDp.String))
 	}
 	dpURL := s.origin
 	dpURL.Path = "/img/dp/" + dp

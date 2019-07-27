@@ -28,7 +28,8 @@ var (
 	rxPhone    = regexp.MustCompile(`(^([+]{1}[8]{2}|0088)?(01){1}[5-9]{1}\d{8})$`)
 	rxUUID     = regexp.MustCompile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
-	dpDir = path.Join("web", "static", "img", "dp")
+	userDpDir       = path.Join("web", "static", "img", "user", "dp")
+	restaurantDpDir = path.Join("web", "static", "img", "restaurant", "dp")
 
 	// ErrUserNotFound denotes a not found user.
 	ErrUserNotFound = errors.New("user not found")
@@ -212,7 +213,7 @@ func (s *Service) UpdateDisplayPicture(ctx context.Context, r io.Reader) (string
 		dp += ".jpg"
 	}
 
-	displayPicturePath := path.Join(dpDir, dp)
+	displayPicturePath := path.Join(userDpDir, dp)
 	f, err := os.Create(displayPicturePath)
 	if err != nil {
 		return "", fmt.Errorf("could not create dp file: %v", err)
@@ -239,7 +240,7 @@ func (s *Service) UpdateDisplayPicture(ctx context.Context, r io.Reader) (string
 	}
 
 	if oldDp.Valid {
-		defer os.Remove(path.Join(dpDir, oldDp.String))
+		defer os.Remove(path.Join(userDpDir, oldDp.String))
 	}
 	dpURL := s.origin
 	dpURL.Path = "/img/user/dp/" + dp

@@ -94,7 +94,7 @@ func (s *Service) UpdateRestaurant(ctx context.Context, id, about, phone, locati
 		return ErrUnauthenticated
 	}
 
-	if !rxUUID.MatchString(id){
+	if !rxUUID.MatchString(id) {
 		return ErrInvalidRestaurantId
 	}
 
@@ -162,7 +162,7 @@ func (s *Service) UpdateRestaurantStatus(ctx context.Context, id string, closed 
 		return ErrUnauthenticated
 	}
 
-	if !rxUUID.MatchString(id){
+	if !rxUUID.MatchString(id) {
 		return ErrInvalidRestaurantId
 	}
 
@@ -192,7 +192,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 		return "", ErrUnauthenticated
 	}
 
-	if !rxUUID.MatchString(id){
+	if !rxUUID.MatchString(id) {
 		return "", ErrInvalidRestaurantId
 	}
 
@@ -259,4 +259,75 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 	dpURL.Path = "/img/restaurant/" + id + "/" + dp
 
 	return dpURL.String(), nil
+}
+
+// UpdateRestaurantDisplayPicture of the authenticated restaurant returning the new avatar URL.
+func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, id, dir, query, urlPath string, uid int64, h, w int) (string, error) {
+	if id != "" {
+		if !rxUUID.MatchString(id) {
+			return "", ErrInvalidRestaurantId
+		}
+	}
+
+	r = io.LimitReader(r, MaxAvatarBytes)
+	img, format, err := image.Decode(r)
+	if err == image.ErrFormat {
+		return "", ErrUnsupportedPictureFormat
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("could not read imageName: %v", err)
+	}
+
+	if format != "png" && format != "jpeg" {
+		return "", ErrUnsupportedPictureFormat
+	}
+
+	imageName, err := gonanoid.Nanoid()
+	if err != nil {
+		return "", fmt.Errorf("could not generate imageName filename: %v", err)
+	}
+
+	if format == "png" {
+		imageName += ".png"
+	} else {
+		imageName += ".jpg"
+	}
+
+	displayPicturePath := path.Join(dir, id)
+	if _, err := os.Stat(displayPicturePath); os.IsNotExist(err) {
+		err = os.Mkdir(displayPicturePath, os.ModeDir)
+		return "", fmt.Errorf("failed to create path for image: %v", err)
+	}
+	displayPicturePath = path.Join(displayPicturePath, imageName)
+	f, err := os.Create(displayPicturePath)
+	if err != nil {
+		return "", fmt.Errorf("could not create imageName file: %v", err)
+	}
+
+	defer f.Close()
+	img = imaging.Fill(img, w, h, imaging.Center, imaging.CatmullRom)
+	if format == "png" {
+		err = png.Encode(f, img)
+	} else {
+		err = jpeg.Encode(f, img, nil)
+	}
+	if err != nil {
+		return "", fmt.Errorf("could not write imageName to disk: %v", err)
+	}
+
+	var oldImg sql.NullString
+	if err = s.db.QueryRowContext(ctx, query, imageName, uid).
+		Scan(&oldImg); err != nil {
+		defer os.Remove(displayPicturePath)
+		return "", fmt.Errorf("could not update imageName: %v", err)
+	}
+
+	if oldImg.Valid {
+		defer os.Remove(path.Join(dir, id, oldImg.String))
+	}
+	imgURL := s.origin
+	imgURL.Path = urlPath + imageName
+
+	return imgURL.String(), nil
 }

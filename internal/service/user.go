@@ -28,8 +28,8 @@ var (
 	rxPhone    = regexp.MustCompile(`(^([+]{1}[8]{2}|0088)?(01){1}[5-9]{1}\d{8})$`)
 	rxUUID     = regexp.MustCompile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
-	userDpDir       = path.Join("web", "static", "img", "user", "dp")
-	restaurantDpDir = path.Join("web", "static", "img", "restaurant", "dp")
+	userDpDir     = path.Join("web", "static", "img", "user", "dp")
+	restaurantDir = path.Join("web", "static", "img", "restaurant")
 
 	// ErrUserNotFound denotes a not found user.
 	ErrUserNotFound = errors.New("user not found")

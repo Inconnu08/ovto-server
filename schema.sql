@@ -55,6 +55,7 @@ CREATE TABLE IF NOT EXISTS restaurant
     id              UUID NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
     title           VARCHAR(50) NOT NULL UNIQUE,
     owner_id        INT NOT NULL REFERENCES foodprovider,
+    avatar          VARCHAR,
     about           VARCHAR,
     location        VARCHAR NOT NULL,
     city            VARCHAR NOT NULL,

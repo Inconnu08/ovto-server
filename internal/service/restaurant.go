@@ -185,7 +185,7 @@ func (s *Service) UpdateRestaurantStatus(ctx context.Context, id string, closed 
 	return nil
 }
 
-// UpdateRestaurantCoverPicture of the authenticated restaurant returning the new avatar URL.
+// UpdateRestaurantDisplayPicture of the authenticated restaurant returning the new avatar URL.
 func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reader, id string) (string, error) {
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	if !ok {
@@ -221,7 +221,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 		dp += ".jpg"
 	}
 
-	displayPicturePath := path.Join(userDpDir, id)
+	displayPicturePath := path.Join(restaurantDir, id)
 	if _, err := os.Stat(displayPicturePath); os.IsNotExist(err) {
 		err = os.Mkdir(displayPicturePath, os.ModeDir)
 		return "", fmt.Errorf("failed to create path for image: %v", err)
@@ -245,18 +245,18 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 
 	var oldDp sql.NullString
 	if err = s.db.QueryRowContext(ctx, `
-		UPDATE users SET avatar = $1 WHERE id = $2
-		RETURNING (SELECT avatar FROM users WHERE id = $2) AS old_dp`, dp, uid).
+		UPDATE restaurant SET avatar = $1 WHERE id = $2
+		RETURNING (SELECT avatar FROM restaurant WHERE id = $2) AS old_dp`, dp, uid).
 		Scan(&oldDp); err != nil {
 		defer os.Remove(displayPicturePath)
 		return "", fmt.Errorf("could not update dp: %v", err)
 	}
 
 	if oldDp.Valid {
-		defer os.Remove(path.Join(restaurantDpDir, id, oldDp.String))
+		defer os.Remove(path.Join(restaurantDir, id, oldDp.String))
 	}
 	dpURL := s.origin
-	dpURL.Path = "/img/restaurant/dp/" + dp
+	dpURL.Path = "/img/restaurant/" + id + "/" + dp
 
 	return dpURL.String(), nil
 }

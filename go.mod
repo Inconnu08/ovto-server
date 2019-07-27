@@ -10,10 +10,13 @@ require (
 	github.com/docker/go-units v0.4.0 // indirect
 	github.com/eknkc/basex v1.0.0 // indirect
 	github.com/golang-migrate/migrate/v4 v4.4.0
+	github.com/golang/mock v1.3.1 // indirect
+	github.com/golang/protobuf v1.3.2 // indirect
 	github.com/google/go-cmp v0.3.0
 	github.com/gotestyourself/gotestyourself v2.2.0+incompatible // indirect
 	github.com/hako/branca v0.0.0-20180808000428-10b799466ada
 	github.com/jackc/pgx v3.4.0+incompatible
+	github.com/jteeuwen/go-bindata v3.0.7+incompatible // indirect
 	github.com/lib/pq v1.1.1
 	github.com/matoous/go-nanoid v0.0.0-20190515092250-e998f83de84d
 	github.com/matryer/way v0.0.0-20180416093233-9632d0c407b0

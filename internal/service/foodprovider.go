@@ -19,20 +19,17 @@ import (
 
 // FoodProvider model
 type FoodProvider struct {
-	ID       int64  `json:"id,omitempty"`
-	Fullname string `json:"Fullname"`
+	ID       string  `json:"id,omitempty"`
+	Fullname string `json:"fullname"`
 	//AvatarURL *string `json:"avatarURL"`
 }
 
 // FoodProvider profile model
 type FoodProviderProfile struct {
 	FoodProvider
-	Email          string `json:"Email,omitempty"`
-	FollowersCount int    `json:"followersCount"`
-	FolloweesCount int    `json:"followeesCount"`
-	Me             bool   `json:"me"`
-	Following      bool   `json:"following"`
-	Followeed      bool   `json:"followeed"`
+	Email          string `json:"email,omitempty"`
+	Phone          string `json:"phone,omitempty"`
+	Me             bool   `json:"me,omitempty"`
 }
 
 // CreateUser with the given Email and name.
@@ -63,11 +60,13 @@ func (s *Service) CreateFoodProvider(ctx context.Context, email, fullname, phone
 		return err
 	}
 
+	var id int
 	query := "INSERT INTO foodprovider (Email, Fullname, phone, Password) VALUES ($1, $2, $3, $4) RETURNING id"
-	_, err = tx.ExecContext(ctx, query, email, fullname, phone, hPassword)
+	err = tx.QueryRowContext(ctx, query, email, fullname, phone, hPassword).Scan(&id)
+	fmt.Println("UNIQUE ID: ", id)
 	unique := isUniqueViolation(err)
 	if unique {
-		if strings.Contains(err.Error(), "Email") {
+		if strings.Contains(err.Error(), "Email") || strings.Contains(err.Error(), "_email") {
 			return ErrEmailTaken
 		} else {
 			return ErrPhoneNumberTaken

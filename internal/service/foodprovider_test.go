@@ -57,7 +57,7 @@ func TestCreateFoodProvider(t *testing.T) {
 			_ := s.CreateFoodProvider(ctx, test.Email, test.Fullname, test.Phone, test.Password)
 			Got, err := s.FoodProviderLogin(ctx, test.Email, test.Password)
 			if test.Condition == "success" {
-				if Got.AuthUser.ID != 1 {
+				if Got.AuthUser.ID != 0 {
 					t.Error("Got:", Got, "| Want:", test.Want)
 				}
 			} else {

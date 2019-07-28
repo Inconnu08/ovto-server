@@ -63,21 +63,25 @@ func TestCreateRestaurant(t *testing.T) {
 	ctx = context.WithValue(ctx, KeyAuthFoodProviderID, user.AuthUser.ID)
 
 	_ = s.CreateUser(ctx, "johndoe@gmail.com", "John Snow", "ilovegolang")
-	//user2, _ := s.UserLogin(ctx, "johndoe@gmail.com", "ilovegolang")
-	//ctx2 := context.WithValue(ctx, KeyAuthFoodProviderID, user2.AuthUser.ID)
-	//tt = append(tt, testdata{Label: "Test should fail to create a restaurant by a non food provider account", Condition: "fail", Want: ErrUnauthenticated, Context:ctx2, Title: "White Canary", About: "WE sale yummy pancakes!", Phone: "01967584756", Location: "House #50, Road #89", City: "Dhaka", Area: "Gulshan", Country: "Bangladesh", OTime: "8AM", CTime: "11PM", Referral: ""})
+	user2, _ := s.UserLogin(ctx, "johndoe@gmail.com", "ilovegolang")
+	ctx2 := context.WithValue(ctx, KeyAuthUserID, user2.AuthUser.ID)
+	tt = append(tt, testdata{Label: "Test should fail to create a restaurant by a non food provider account", Condition: "fail", Want: ErrUnauthenticated, Context:ctx2, Title: "Fake Out 2.0", About: "WE sale yummy pancakes!", Phone: "01967584756", Location: "House #50, Road #89", City: "Dhaka", Area: "Gulshan", Country: "Bangladesh", OTime: "8AM", CTime: "11PM", Referral: ""})
 	//_ = s.CreateFoodProvider(ctx, "evil@gmail.com", "John Snow Evil", "01807584576", "ilovebeingevil")
 	//user2, _ := s.FoodProviderLogin(ctx, "johndoe@gmail.com", "ilovebeingevil")
 	//ctx2 := context.WithValue(ctx, KeyAuthFoodProviderID, user2.AuthUser.ID)
 	//append(tt, )
 	for _, test := range tt {
 		t.Run(test.Label, func(t *testing.T) {
-			Got := s.CreateRestaurant(ctx, test.Title, test.About, test.Phone, test.Location, test.City, test.Area, test.Country, test.OTime, test.CTime, test.Referral)
+			if test.Label ==  "Test should fail to create a restaurant by a non food provider account" {
+				ctx = ctx2
+			}
+			Got := s.CreateRestaurant(ctx2, test.Title, test.About, test.Phone, test.Location, test.City, test.Area, test.Country, test.OTime, test.CTime)
 			if test.Condition == "success" {
 				if Got != nil {
 					t.Error("Got:", Got, "| Want:", test.Want)
 				}
 			} else {
+				log.Println(Got)
 				if !cmp.Equal(Got.Error(), test.Want.Error()) {
 					t.Error("Got:", Got, "| Want:", test.Want)
 				}

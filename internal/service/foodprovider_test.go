@@ -16,19 +16,15 @@ func TestCreateFoodProvider(t *testing.T) {
 		Label     string
 		Condition string
 		Want      error
-		Email     string
 		Fullname  string
+		Email     string
 		Phone 	  string
 		Password  string
 	}{
 		// success condition
-		{Label: "Test should create Food Provider successfully", Condition: "success", Want: nil, Email: "johndoe@gmail.com", Fullname: "John Snow", Phone: "01867584576", Password: "ilovegolang"},
+		{Label: "Test should login Food Provider successfully", Condition: "success", Want: nil, Fullname: "Taufiq Rahman", Email: "johndoe@gmail.com", Phone:"01767586798", Password: "coolpass"},
 		// error condition
-		{Label: "Test should fail if phone number taken", Condition: "fail", Want: ErrPhoneNumberTaken, Email: "chesterb@gmail.com", Fullname: "John Snow", Phone: "01867584576", Password: "ilovegolang"},
-		{Label: "Test should fail if email number taken", Condition: "fail", Want: ErrEmailTaken, Email: "johndoe@gmail.com", Fullname: "John Snow", Phone: "01860584576", Password: "ilovegolang"},
-		{Label: "Test should fail for invalid email", Condition: "fail", Want: ErrInvalidEmail, Email: "johndoegmail.com", Fullname: "John Snow", Phone: "01867584576", Password: "ilovegolang"},
-		{Label: "Test should fail for invalid phone number", Condition: "fail", Want: ErrInvalidPhone, Email: "johndoe@gmail.com", Fullname: "John Targaeryen", Phone: "018675845760", Password: "ilovegolang"},
-		{Label: "Test should fail for invalid full name", Condition: "fail", Want: ErrInvalidFullname, Email: "johndoe@gmail.com", Fullname: "007John Snow", Phone: "01867584576", Password: "ilovegolang"},
+		{Label: "Test should login should fail to create with invalid phone", Condition: "fail", Want: ErrInvalidPhone, Fullname: "Taufiq Rahman", Email: "johndoe@gmail.com", Phone:"01767586798c",  Password: "ilovegolang"},
 	}
 
 	tearDown := SetupTest()
@@ -54,11 +50,10 @@ func TestCreateFoodProvider(t *testing.T) {
 
 	for _, test := range tt {
 		t.Run(test.Label, func(t *testing.T) {
-			_ := s.CreateFoodProvider(ctx, test.Email, test.Fullname, test.Phone, test.Password)
-			Got, err := s.FoodProviderLogin(ctx, test.Email, test.Password)
+			err = s.CreateFoodProvider(ctx, test.Email, test.Fullname, test.Phone, test.Password)
 			if test.Condition == "success" {
-				if Got.AuthUser.ID != 0 {
-					t.Error("Got:", Got, "| Want:", test.Want)
+				if err != nil {
+					t.Error("Got:", err, "| Want:", test.Want)
 				}
 			} else {
 				if !cmp.Equal(err.Error(), test.Want.Error()) {

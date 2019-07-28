@@ -71,6 +71,7 @@ func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, loc
 	//	RETURNING id`
 	var id string
 	err = tx.QueryRowContext(ctx, query, args...).Scan(&id)
+	fmt.Println(err)
 	fmt.Println("ID: ", id)
 	unique := isUniqueViolation(err)
 	if unique {

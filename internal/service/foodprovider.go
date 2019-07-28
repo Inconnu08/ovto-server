@@ -19,17 +19,19 @@ import (
 
 // FoodProvider model
 type FoodProvider struct {
-	ID       string  `json:"id,omitempty"`
-	Fullname string `json:"fullname"`
-	//AvatarURL *string `json:"avatarURL"`
+	ID       int64   `json:"id,omitempty"`
+	Fullname string  `json:"fullname"`
+	Avatar   *string `json:"avatar,omitempty"`
+	Email    string  `json:"email"`
+	Phone    string  `json:"phone"`
 }
 
 // FoodProvider profile model
 type FoodProviderProfile struct {
 	FoodProvider
-	Email          string `json:"email,omitempty"`
-	Phone          string `json:"phone,omitempty"`
-	Me             bool   `json:"me,omitempty"`
+	Email string `json:"email,omitempty"`
+	Phone string `json:"phone,omitempty"`
+	Me    bool   `json:"me,omitempty"`
 }
 
 // CreateUser with the given Email and name.

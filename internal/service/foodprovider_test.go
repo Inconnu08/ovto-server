@@ -54,14 +54,15 @@ func TestCreateFoodProvider(t *testing.T) {
 
 	for _, test := range tt {
 		t.Run(test.Label, func(t *testing.T) {
-			Got := s.CreateFoodProvider(ctx, test.Email, test.Fullname, test.Phone, test.Password)
+			_ := s.CreateFoodProvider(ctx, test.Email, test.Fullname, test.Phone, test.Password)
+			Got, err := s.FoodProviderLogin(ctx, test.Email, test.Password)
 			if test.Condition == "success" {
-				if Got != nil {
+				if Got.AuthUser.ID != 1 {
 					t.Error("Got:", Got, "| Want:", test.Want)
 				}
 			} else {
-				if !cmp.Equal(Got.Error(), test.Want.Error()) {
-					t.Error("Got:", Got, "| Want:", test.Want)
+				if !cmp.Equal(err.Error(), test.Want.Error()) {
+					t.Error("Got:", err, "| Want:", test.Want)
 				}
 			}
 		})

@@ -33,7 +33,7 @@ var (
 	ErrInvalidVerificationCode = errors.New("invalid verification code")
 	// ErrVerificationCodeNotFound denotes a not found verification code.
 	ErrVerificationCodeNotFound = errors.New("verification code not found")
-    // ErrEmptyValue denotes a input value cannot be empty.
+	// ErrEmptyValue denotes a input value cannot be empty.
 	ErrEmptyValue = errors.New("value cannot be empty")
 )
 
@@ -41,6 +41,12 @@ type LoginOutput struct {
 	Token     string    `json:"token"`
 	ExpiresAt time.Time `json:"expiresAt"`
 	AuthUser  User      `json:"authUser"`
+}
+
+type FPLoginOutput struct {
+	Token     string              `json:"token"`
+	ExpiresAt time.Time           `json:"expiresAt"`
+	AuthUser  FoodProviderProfile `json:"authUser"`
 }
 
 type GoogleAuthOutput struct {
@@ -177,8 +183,8 @@ func (s *Service) UserLogin(ctx context.Context, email string, password string) 
 	return out, nil
 }
 
-func (s *Service) FoodProviderLogin(ctx context.Context, email string, password string) (LoginOutput, error) {
-	var out LoginOutput
+func (s *Service) FoodProviderLogin(ctx context.Context, email string, password string) (FPLoginOutput, error) {
+	var out FPLoginOutput
 
 	password = strings.TrimSpace(password)
 	email = strings.TrimSpace(email)
@@ -188,8 +194,8 @@ func (s *Service) FoodProviderLogin(ctx context.Context, email string, password 
 
 	//var avatar sql.NullString
 	var hPassword []byte
-	query := "SELECT id, Fullname, Password FROM foodprovider WHERE Email = $1"
-	err := s.db.QueryRowContext(ctx, query, email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname, &hPassword)
+	query := "SELECT id, Fullname, Email, Phone, Password FROM foodprovider WHERE Email = $1"
+	err := s.db.QueryRowContext(ctx, query, email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname, &out.AuthUser.Email, &out.AuthUser.Phone, &hPassword)
 	if err == sql.ErrNoRows {
 		return out, ErrUserNotFound
 	}

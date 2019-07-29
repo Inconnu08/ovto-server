@@ -29,6 +29,9 @@ func New(s *service.Service) http.Handler {
 	foodProviderApi.HandleFunc("POST", "/login", h.foodProviderLogin)
 	foodProviderApi.HandleFunc("GET", "/auth_fp", h.authFp)
 
+	restaurantApi := way.NewRouter()
+	restaurantApi.HandleFunc("POST", "/", h.createRestaurant)
+
 	fs := http.FileServer(&spaFileSystem{http.Dir("web/static")})
 	//if inLocalhost {
 	//	fs = withoutCache(fs)
@@ -37,6 +40,7 @@ func New(s *service.Service) http.Handler {
 	r := way.NewRouter()
 	r.Handle("*", "/api...", http.StripPrefix("/api", h.withAuth(userApi)))
 	r.Handle("*", "/api/fp...", http.StripPrefix("/api/fp", h.withFpAuth(foodProviderApi)))
+	r.Handle("*", "/api/restaurants...", http.StripPrefix("/api/restaurants", h.withFpAuth(restaurantApi)))
 	r.Handle("GET", "/...", fs)
 
 	return r

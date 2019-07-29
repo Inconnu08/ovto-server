@@ -28,13 +28,18 @@ func (h *handler) createRestaurant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.CreateFoodProvider(r.Context(), )
-	if err == service.ErrInvalidEmail || err == service.ErrInvalidFullname || err == service.ErrInvalidPhone {
+	err := h.CreateRestaurant(r.Context(), in.Title, in.About, in.Phone, in.Location, in.City, in.Area, in.Country, in.OpeningTime, in.ClosingTime)
+	if err == service.ErrUnauthenticated {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err == service.ErrInvalidPhone {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
 
-	if err == service.ErrEmailTaken || err == service.ErrPhoneNumberTaken {
+	if err == service.ErrTitleTaken {
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}

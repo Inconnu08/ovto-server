@@ -12,10 +12,11 @@ import (
 )
 
 func TestCreateRestaurant(t *testing.T) {
-	var tt = []struct {
+	type testdata struct {
 		Label     string
 		Condition string
 		Want      error
+		Context   context.Context
 		Title     string
 		About     string
 		Phone     string
@@ -26,15 +27,14 @@ func TestCreateRestaurant(t *testing.T) {
 		OTime     string
 		CTime     string
 		Referral  string
-	}{
+	}
+
+	var tt = []testdata {
 		// success condition
 		{Label: "Test should create Restaurant successfully", Condition: "success", Want: nil, Title: "White Canary", About: "WE sale yummy pancakes!", Phone: "01967584756", Location: "House #50, Road #89", City: "Dhaka", Area: "Gulshan", Country: "Bangladesh", OTime: "8AM", CTime: "11PM", Referral: ""},
 		// error condition
-		{Label: "Test should fail if phone number taken", Condition: "fail", Want: ErrPhoneNumberTaken},
-		{Label: "Test should fail if email number taken", Condition: "fail", Want: ErrEmailTaken},
-		{Label: "Test should fail for invalid email", Condition: "fail", Want: ErrInvalidEmail},
-		{Label: "Test should fail for invalid phone number", Condition: "fail", Want: ErrInvalidPhone},
-		{Label: "Test should fail for invalid full name", Condition: "fail", Want: ErrInvalidFullname},
+		{Label: "Test should fail with title taken", Condition: "fail", Want: ErrTitleTaken, Title: "White Canary", About: "WE sale yummy pancakes!", Phone: "01967584756", Location: "House #50, Road #89", City: "Dhaka", Area: "Gulshan", Country: "Bangladesh", OTime: "8AM", CTime: "11PM", Referral: ""},
+		{Label: "Test should fail with invalid phone number", Condition: "fail", Want: ErrInvalidPhone, Title: "Taste Bud", About: "WE sale yummy desserts!", Phone: "019675847560", Location: "House #50, Road #89", City: "Dhaka", Area: "Gulshan", Country: "Bangladesh", OTime: "8AM", CTime: "11PM", Referral: ""},
 	}
 
 	tearDown := SetupTest()
@@ -62,17 +62,28 @@ func TestCreateRestaurant(t *testing.T) {
 	user, _ := s.FoodProviderLogin(ctx, "johndoe@gmail.com", "ilovegolang")
 	ctx = context.WithValue(ctx, KeyAuthFoodProviderID, user.AuthUser.ID)
 
+	_ = s.CreateUser(ctx, "johndoe@gmail.com", "John Snow", "ilovegolang")
+	user2, _ := s.UserLogin(ctx, "johndoe@gmail.com", "ilovegolang")
+	ctx2 := context.WithValue(ctx, KeyAuthUserID, user2.AuthUser.ID)
+	tt = append(tt, testdata{Label: "Test should fail to create a restaurant by a non food provider account", Condition: "fail", Want: ErrUnauthenticated, Context:ctx2, Title: "Fake Out 2.0", About: "WE sale yummy pancakes!", Phone: "01967584756", Location: "House #50, Road #89", City: "Dhaka", Area: "Gulshan", Country: "Bangladesh", OTime: "8AM", CTime: "11PM", Referral: ""})
+	//_ = s.CreateFoodProvider(ctx, "evil@gmail.com", "John Snow Evil", "01807584576", "ilovebeingevil")
+	//user2, _ := s.FoodProviderLogin(ctx, "johndoe@gmail.com", "ilovebeingevil")
+	//ctx2 := context.WithValue(ctx, KeyAuthFoodProviderID, user2.AuthUser.ID)
+	//append(tt, )
 	for _, test := range tt {
 		t.Run(test.Label, func(t *testing.T) {
-
-			Got := s.CreateRestaurant(ctx, test.Title, test.About, test.Phone, test.Location, test.City, test.Area, test.Country, test.OTime, test.CTime, test.Referral)
+			if test.Label ==  "Test should fail to create a restaurant by a non food provider account" {
+				ctx = ctx2
+			}
+			Got := s.CreateRestaurant(ctx2, test.Title, test.About, test.Phone, test.Location, test.City, test.Area, test.Country, test.OTime, test.CTime)
 			if test.Condition == "success" {
 				if Got != nil {
 					t.Error("Got:", Got, "| Want:", test.Want)
 				}
 			} else {
-				if !cmp.Equal(err.Error(), test.Want.Error()) {
-					t.Error("Got:", err, "| Want:", test.Want)
+				log.Println(Got)
+				if !cmp.Equal(Got.Error(), test.Want.Error()) {
+					t.Error("Got:", Got, "| Want:", test.Want)
 				}
 			}
 		})

@@ -77,7 +77,7 @@ type PictureData struct {
 type ThirdPartyProfile interface {
 }
 
-// AuthUserID is used to decode token
+// AuthUserID is used to decode token and get the id
 func (s *Service) AuthUserID(token string) (int64, error) {
 	str, err := s.codec.DecodeToString(token)
 	if err != nil {

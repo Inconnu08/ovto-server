@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"github.com/disintegration/imaging"
-	gonanoid "github.com/matoous/go-nanoid"
 	"image"
 	"image/jpeg"
 	"image/png"
@@ -13,9 +11,76 @@ import (
 	"os"
 	"path"
 	"strings"
+
+	"github.com/disintegration/imaging"
+	gonanoid "github.com/matoous/go-nanoid"
 )
 
-func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime, referral string) error {
+func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime string) error {
+	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
+	if !ok {
+		return ErrUnauthenticated
+	}
+
+	title = strings.TrimSpace(title)
+	about = strings.TrimSpace(about)
+	city = strings.TrimSpace(city)
+	area = strings.TrimSpace(area)
+	location = strings.TrimSpace(location)
+	openingTime = strings.TrimSpace(openingTime)
+	closingTime = strings.TrimSpace(closingTime)
+	if !rxPhone.MatchString(phone) {
+		return ErrInvalidPhone
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("could not begin tx: %v", err)
+	}
+	defer tx.Rollback()
+
+	//query, args, err := buildQuery(`
+	//	INSERT INTO restaurant (title, owner_id, about, location, city, area, country, phone, opening_time, closing_time)
+	//	VALUES (@1, @2, @3, @4, @5, @6, @7, @8, @9, @10)
+  	//	RETURNING id`, map[string]interface{}{
+	//	"1":               title,
+	//	"2":               uid,
+	//	"3":               about,
+	//	"4":               location,
+	//	"5":               city,
+	//	"6":               area,
+	//	"7":               country,
+	//	"8":               phone,
+	//	"9":               openingTime,
+	//	"10":              closingTime,
+	//})
+	//if err != nil {
+	//	return fmt.Errorf("could not build sql query: %v", err)
+	//}
+	query := `
+		INSERT INTO restaurant (title, owner_id, about, location, city, area, country, phone, opening_time, closing_time)
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+		RETURNING id`
+	var id string
+	err = tx.QueryRowContext(ctx, query, title, uid, about, location, city, area, country, phone, openingTime, closingTime).Scan(&id)
+	fmt.Println(err)
+	unique := isUniqueViolation(err)
+	if unique {
+		return ErrTitleTaken
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("could not commit transaction: %v", err)
+	}
+
+	if err != nil {
+		return fmt.Errorf("could not create restaurant: %v", err)
+	}
+	fmt.Println("Restaurant:", title, "ID: ", id)
+	return nil
+}
+
+func (s *Service) CreateRestaurantByAmbassador(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime, referral string) error {
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	if !ok {
 		return ErrUnauthenticated
@@ -71,6 +136,7 @@ func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, loc
 	//	RETURNING id`
 	var id string
 	err = tx.QueryRowContext(ctx, query, args...).Scan(&id)
+	fmt.Println(err)
 	fmt.Println("ID: ", id)
 	unique := isUniqueViolation(err)
 	if unique {

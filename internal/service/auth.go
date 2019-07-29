@@ -116,6 +116,30 @@ func (s *Service) AuthUser(ctx context.Context) (User, error) {
 	return u, nil
 }
 
+// AuthUser is the current authenticated user.
+func (s *Service) AuthFp(ctx context.Context) (User, error) {
+	var u User
+	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
+	if !ok {
+		return u, ErrUnauthenticated
+	}
+
+	//return s.userByID(ctx, uid)
+
+	query := "SELECT Fullname FROM foodprovider WHERE id = $1"
+	err := s.db.QueryRowContext(ctx, query, uid).Scan(&u.Fullname)
+	if err == sql.ErrNoRows {
+		return u, ErrUserNotFound
+	}
+
+	if err != nil {
+		return u, fmt.Errorf("could not query selected auth user: %v", err)
+	}
+
+	u.ID = uid
+	return u, nil
+}
+
 // AuthFoodProvider is the current authenticated food provider.
 func (s *Service) AuthFoodProvider(ctx context.Context) (User, error) {
 	var u User

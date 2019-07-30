@@ -28,6 +28,7 @@ func New(s *service.Service) http.Handler {
 	foodProviderApi.HandleFunc("POST", "/users", h.createFoodProvider)
 	foodProviderApi.HandleFunc("POST", "/login", h.foodProviderLogin)
 	foodProviderApi.HandleFunc("GET", "/auth_fp", h.authFp)
+	foodProviderApi.HandleFunc("GET", "/restaurants", h.getRestaurants)
 
 	restaurantApi := way.NewRouter()
 	restaurantApi.HandleFunc("POST", "/", h.createRestaurant)

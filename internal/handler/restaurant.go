@@ -56,3 +56,31 @@ func (h *handler) createRestaurant(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusNoContent)
 }
+
+func (h *handler) getRestaurants(w http.ResponseWriter, r *http.Request) {
+	var in createRestaurantInput
+
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	restaurants, err := h.GetRestaurantsByFp(r.Context())
+	if err == service.ErrUnauthenticated {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err == service.ErrRestaurantNotFound {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		respondErr(w, err)
+		return
+	}
+
+	respond(w, restaurants, http.StatusOK)
+}

@@ -124,35 +124,32 @@ func (s *Service) GetRestaurantByID(ctx context.Context, id string) (Restaurant,
 	return r, nil
 }
 
-func (s *Service) GetRestaurantsByFp(ctx context.Context, id string) ([]string, error) {
-	_, ok := ctx.Value(KeyAuthUserID).(int64)
+func (s *Service) GetRestaurantsByFp(ctx context.Context) ([]string, error) {
+	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	if !ok {
 		return nil, ErrUnauthenticated
 	}
 
-	if !rxUUID.MatchString(id) {
-		return nil, ErrInvalidRestaurantId
+	query := "SELECT title FROM restaurant WHERE owner_id = $1"
+	rows, err := s.db.QueryContext(ctx, query, uid)
+	if err != nil {
+		return nil, ErrRestaurantNotFound
 	}
 
-	query := "SELECT title, about, rating FROM restaurant WHERE id = $1"
-	rows, err := s.db.QueryContext(ctx, query, id)
-
-	uu := make([]string, 0, 0)
+	defer rows.Close()
+	uu := make([]string, 0, 1)
 	for rows.Next() {
 		var u string
-		if err := rows.Scan(&u); err != nil {
-			return nil, fmt.Errorf("could not scan username: %v", err)
+		if err = rows.Scan(&u); err != nil {
+			fmt.Println(u)
+			return nil, fmt.Errorf("could not get title: %v", err)
 		}
 
 		uu = append(uu, u)
 	}
 
-	if err := rows.Err(); err != nil {
-		return nil, fmt.Errorf("could not iterate username rows: %v", err)
-	}
-
-	if rows != nil {
-		return uu, fmt.Errorf("could not query restaurant: %v", err)
+	if err = rows.Err(); err != nil {
+		return nil, fmt.Errorf("could not iterate restaurants rows: %v", err)
 	}
 
 	return uu, nil

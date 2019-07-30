@@ -258,7 +258,7 @@ func (s *Service) FoodProviderLogin(ctx context.Context, email string, password 
 
 	//out.AuthUser.AvatarURL = s.avatarURL(avatar)
 
-	out.Token, err = s.uCodec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
+	out.Token, err = s.fpCodec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
 	if err != nil {
 		return out, fmt.Errorf("could not generate token: %v", err)
 	}
@@ -291,7 +291,7 @@ func (s *Service) AmbassadorLogin(ctx context.Context, email string, password st
 
 	//out.AuthUser.AvatarURL = s.avatarURL(avatar)
 
-	out.Token, err = s.uCodec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
+	out.Token, err = s.aCodec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
 	if err != nil {
 		return out, fmt.Errorf("could not generate token: %v", err)
 	}

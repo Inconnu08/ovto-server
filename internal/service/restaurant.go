@@ -18,9 +18,11 @@ import (
 
 func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime string) error {
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
+	println("Finally:", uid)
 	if !ok {
 		return ErrUnauthenticated
 	}
+	println(uid)
 
 	title = strings.TrimSpace(title)
 	about = strings.TrimSpace(about)
@@ -32,6 +34,13 @@ func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, loc
 	if !rxPhone.MatchString(phone) {
 		return ErrInvalidPhone
 	}
+
+	// for debug
+	var n string
+	var i int
+	err := s.db.QueryRowContext(ctx, "SELECT id, fullname from foodprovider WHERE id = $1", uid).Scan(&i, &n)
+	println("Owner", n, i)
+	// debug end
 
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
@@ -69,8 +78,13 @@ func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, loc
 		return ErrTitleTaken
 	}
 
+	fk := isForeignKeyViolation(err)
+	if fk {
+		return ErrUserNotFound
+	}
+
 	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("could not commit transaction: %v", err)
+		return fmt.Errorf("[Restaurant] could not commit transaction: %v", err)
 	}
 
 	if err != nil {

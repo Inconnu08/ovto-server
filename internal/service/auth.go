@@ -79,7 +79,35 @@ type ThirdPartyProfile interface {
 
 // AuthUserID is used to decode token and get the id
 func (s *Service) AuthUserID(token string) (int64, error) {
-	str, err := s.codec.DecodeToString(token)
+	str, err := s.uCodec.DecodeToString(token)
+	if err != nil {
+		return 0, fmt.Errorf("could not decode token: %v", err)
+	}
+
+	i, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("could not parse auth user id from token: %v", err)
+	}
+
+	return i, nil
+}
+
+func (s *Service) AuthFpID(token string) (int64, error) {
+	str, err := s.fpCodec.DecodeToString(token)
+	if err != nil {
+		return 0, fmt.Errorf("could not decode token: %v", err)
+	}
+
+	i, err := strconv.ParseInt(str, 10, 64)
+	if err != nil {
+		return 0, fmt.Errorf("could not parse auth user id from token: %v", err)
+	}
+
+	return i, nil
+}
+
+func (s *Service) AuthAmbassadorID(token string) (int64, error) {
+	str, err := s.aCodec.DecodeToString(token)
 	if err != nil {
 		return 0, fmt.Errorf("could not decode token: %v", err)
 	}
@@ -197,7 +225,7 @@ func (s *Service) UserLogin(ctx context.Context, email string, password string) 
 
 	//out.AuthUser.AvatarURL = s.avatarURL(avatar)
 
-	out.Token, err = s.codec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
+	out.Token, err = s.uCodec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
 	if err != nil {
 		return out, fmt.Errorf("could not generate token: %v", err)
 	}
@@ -230,7 +258,7 @@ func (s *Service) FoodProviderLogin(ctx context.Context, email string, password 
 
 	//out.AuthUser.AvatarURL = s.avatarURL(avatar)
 
-	out.Token, err = s.codec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
+	out.Token, err = s.uCodec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
 	if err != nil {
 		return out, fmt.Errorf("could not generate token: %v", err)
 	}
@@ -263,7 +291,7 @@ func (s *Service) AmbassadorLogin(ctx context.Context, email string, password st
 
 	//out.AuthUser.AvatarURL = s.avatarURL(avatar)
 
-	out.Token, err = s.codec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
+	out.Token, err = s.uCodec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
 	if err != nil {
 		return out, fmt.Errorf("could not generate token: %v", err)
 	}
@@ -293,7 +321,7 @@ func (s *Service) FacebookAuth(ctx context.Context, profile FacebookAuthOutput) 
 		out.AuthUser.Fullname = profile.Name
 	}
 
-	out.Token, err = s.codec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
+	out.Token, err = s.uCodec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
 	if err != nil {
 		return out, fmt.Errorf("could not generate token: %v", err)
 	}
@@ -323,7 +351,7 @@ func (s *Service) GoogleAuth(ctx context.Context, profile GoogleAuthOutput) (Log
 		out.AuthUser.Fullname = profile.Name
 	}
 
-	out.Token, err = s.codec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
+	out.Token, err = s.uCodec.EncodeToString(strconv.FormatInt(out.AuthUser.ID, 10))
 	if err != nil {
 		return out, fmt.Errorf("could not generate token: %v", err)
 	}

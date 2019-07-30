@@ -18,10 +18,12 @@ import (
 
 func main() {
 	var (
-		port      = env("PORT", "3000")
-		originStr = env("ORIGIN", "http://localhost:"+port)
-		dbURL     = env("DATABASE_URL", "postgresql://root@127.0.0.1:26257/ovto?sslmode=disable")
-		tokenKey  = env("TOKEN_KEY", "supersecretkeyyoushouldnotcommit")
+		port         = env("PORT", "3000")
+		originStr    = env("ORIGIN", "http://localhost:"+port)
+		dbURL        = env("DATABASE_URL", "postgresql://root@127.0.0.1:26257/ovto?sslmode=disable")
+		userTokenKey = env("TOKEN_KEY", "supersecretkeyyoushouldnotcommit")
+		fpTokenKey = env("TOKEN_KEY", "supersecretkeyyoushouldcommitokk")
+		ambassadorTokenKey = env("TOKEN_KEY", "supersecretkeyyoushouldcommit111")
 	)
 
 	log := logrus.New()
@@ -44,9 +46,9 @@ func main() {
 		return
 	}
 
-	if err := service.ValidateSchema(db); err != nil {
-		log.Fatalf("\nFailed to validate schema: %v\n", err)
-	}
+	//if err := service.ValidateSchema(db); err != nil {
+	//	log.Fatalf("\nFailed to validate schema: %v\n", err)
+	//}
 
 	defer func() {
 		if err := db.Close(); err != nil {
@@ -59,10 +61,16 @@ func main() {
 		return
 	}
 
-	codec := branca.NewBranca(tokenKey)
+	codec := branca.NewBranca(userTokenKey)
 	codec.SetTTL(uint32(service.TokenLifeSpan.Seconds()))
 
-	s := service.New(db, codec, *origin)
+	fpCodec := branca.NewBranca(fpTokenKey)
+	fpCodec.SetTTL(uint32(service.TokenLifeSpan.Seconds()))
+
+	aCodec := branca.NewBranca(ambassadorTokenKey)
+	aCodec.SetTTL(uint32(service.TokenLifeSpan.Seconds()))
+
+	s := service.New(db, codec, fpCodec, aCodec, *origin)
 	h := handler.New(s)
 
 	//go func() {

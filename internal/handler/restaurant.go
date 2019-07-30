@@ -44,6 +44,11 @@ func (h *handler) createRestaurant(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err == service.ErrUserNotFound {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
 	if err != nil {
 		respondErr(w, err)
 		return

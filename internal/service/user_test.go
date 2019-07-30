@@ -37,6 +37,9 @@ func TestService_CreateUser(t *testing.T) {
 	codec := branca.NewBranca("supersecretkeyyoushouldnotcommit")
 	codec.SetTTL(uint32(TokenLifeSpan.Seconds()))
 
+	fpCodec := branca.NewBranca("supersecretkeyyoushouldcommitnot")
+	fpCodec.SetTTL(uint32(TokenLifeSpan.Seconds()))
+
 	c, err := pgx.ParseURI(pgURL.String())
 	if err != nil {
 		log.Fatalf(err.Error())
@@ -48,7 +51,7 @@ func TestService_CreateUser(t *testing.T) {
 		log.Fatalf("failed to validate schema: %v\n", err)
 	}
 
-	s := New(db, codec, url.URL{})
+	s := New(db, codec, fpCodec, url.URL{})
 
 	for _, test := range tt {
 		t.Run(test.Label, func(t *testing.T) {
@@ -103,7 +106,7 @@ func TestService_UpdateUser(t *testing.T) {
 		log.Fatalf("failed to validate schema: %v\n", err)
 	}
 
-	s := New(db, codec, url.URL{})
+	s := New(db, codec, nil,nil, url.URL{})
 
 	for _, test := range tt {
 		t.Run(test.Label, func(t *testing.T) {

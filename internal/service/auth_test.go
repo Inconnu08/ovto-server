@@ -35,6 +35,9 @@ func TestUserLogin(t *testing.T) {
 	codec := branca.NewBranca("supersecretkeyyoushouldcommitokk")
 	codec.SetTTL(uint32(TokenLifeSpan.Seconds()))
 
+	fpCodec := branca.NewBranca("supersecretkeyyoushouldcommitnot")
+	fpCodec.SetTTL(uint32(TokenLifeSpan.Seconds()))
+
 	c, err := pgx.ParseURI(pgURL.String())
 	if err != nil {
 		log.Fatalf(err.Error())
@@ -46,7 +49,7 @@ func TestUserLogin(t *testing.T) {
 		log.Fatalf("failed to validate schema: %v\n", err)
 	}
 
-	s := New(db, codec, url.URL{})
+	s := New(db, codec, fpCodec, nil, url.URL{})
 
 	for _, test := range tt {
 		t.Run(test.Label, func(t *testing.T) {

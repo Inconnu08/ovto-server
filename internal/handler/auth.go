@@ -206,7 +206,7 @@ func (h *handler) withAuth(next http.Handler) http.Handler {
 
 		token := a[7:]
 		uid, err := h.AuthUserID(token)
-		log.Println(token)
+		log.Println(token, "=", uid)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return
@@ -227,8 +227,30 @@ func (h *handler) withFpAuth(next http.Handler) http.Handler {
 		}
 
 		token := a[7:]
-		uid, err := h.AuthUserID(token)
-		log.Println(token)
+		uid, err := h.AuthFpID(token)
+		log.Println(token, "=", uid)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusUnauthorized)
+			return
+		}
+
+		ctx := r.Context()
+		ctx = context.WithValue(ctx, service.KeyAuthFoodProviderID, uid)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
+}
+
+func (h *handler) withAmbassadorAuth(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		a := r.Header.Get("Authorization")
+		if !strings.HasPrefix(a, "Bearer ") {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		token := a[7:]
+		uid, err := h.AuthAmbassadorID(token)
+		log.Println(token, "=", uid)
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusUnauthorized)
 			return

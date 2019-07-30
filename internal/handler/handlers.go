@@ -38,9 +38,9 @@ func New(s *service.Service) http.Handler {
 	//}
 
 	r := way.NewRouter()
-	r.Handle("*", "/api...", http.StripPrefix("/api", h.withAuth(userApi)))
 	r.Handle("*", "/api/fp...", http.StripPrefix("/api/fp", h.withFpAuth(foodProviderApi)))
 	r.Handle("*", "/api/restaurants...", http.StripPrefix("/api/restaurants", h.withFpAuth(restaurantApi)))
+	r.Handle("*", "/api...", http.StripPrefix("/api", h.withAuth(userApi)))
 	r.Handle("GET", "/...", fs)
 
 	return r

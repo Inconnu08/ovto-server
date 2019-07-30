@@ -33,6 +33,8 @@ var (
 
 	// ErrUserNotFound denotes a not found user.
 	ErrUserNotFound = errors.New("user not found")
+	// ErrUserNotFound denotes a not found user.
+	ErrRestaurantNotFound = errors.New("restaurant not found")
 	// ErrInvalidEmail denotes an invalid Email address.
 	ErrInvalidEmail = errors.New("invalid Email")
 	// ErrInvalidFullname denotes an invalid username.

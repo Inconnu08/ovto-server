@@ -16,6 +16,12 @@ import (
 	gonanoid "github.com/matoous/go-nanoid"
 )
 
+type Restaurant struct {
+	Title  string  `json:"title"`
+	About  string  `json:"about"`
+	Rating float64 `json:"title"`
+}
+
 func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime string) error {
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	println("Finally:", uid)
@@ -51,7 +57,7 @@ func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, loc
 	//query, args, err := buildQuery(`
 	//	INSERT INTO restaurant (title, owner_id, about, location, city, area, country, phone, opening_time, closing_time)
 	//	VALUES (@1, @2, @3, @4, @5, @6, @7, @8, @9, @10)
-  	//	RETURNING id`, map[string]interface{}{
+	//	RETURNING id`, map[string]interface{}{
 	//	"1":               title,
 	//	"2":               uid,
 	//	"3":               about,
@@ -92,6 +98,64 @@ func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, loc
 	}
 	fmt.Println("Restaurant:", title, "ID: ", id)
 	return nil
+}
+
+func (s *Service) GetRestaurantByID(ctx context.Context, id string) (Restaurant, error) {
+	_, ok := ctx.Value(KeyAuthUserID).(int64)
+	var r Restaurant
+	if !ok {
+		return r, ErrUnauthenticated
+	}
+
+	if !rxUUID.MatchString(id) {
+		return r, ErrInvalidRestaurantId
+	}
+
+	query := "SELECT title, about, rating FROM restaurant WHERE id = $1"
+	err := s.db.QueryRowContext(ctx, query, id).Scan(&r.Title, &r.About, &r.Rating)
+	if err == sql.ErrNoRows {
+		return r, ErrRestaurantNotFound
+	}
+
+	if err != nil {
+		return r, fmt.Errorf("could not query restaurant: %v", err)
+	}
+
+	return r, nil
+}
+
+func (s *Service) GetRestaurantsByFp(ctx context.Context, id string) ([]string, error) {
+	_, ok := ctx.Value(KeyAuthUserID).(int64)
+	if !ok {
+		return nil, ErrUnauthenticated
+	}
+
+	if !rxUUID.MatchString(id) {
+		return nil, ErrInvalidRestaurantId
+	}
+
+	query := "SELECT title, about, rating FROM restaurant WHERE id = $1"
+	rows, err := s.db.QueryContext(ctx, query, id)
+
+	uu := make([]string, 0, 0)
+	for rows.Next() {
+		var u string
+		if err := rows.Scan(&u); err != nil {
+			return nil, fmt.Errorf("could not scan username: %v", err)
+		}
+
+		uu = append(uu, u)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("could not iterate username rows: %v", err)
+	}
+
+	if rows != nil {
+		return uu, fmt.Errorf("could not query restaurant: %v", err)
+	}
+
+	return uu, nil
 }
 
 func (s *Service) CreateRestaurantByAmbassador(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime, referral string) error {

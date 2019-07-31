@@ -32,6 +32,7 @@ func New(s *service.Service) http.Handler {
 
 	restaurantApi := way.NewRouter()
 	restaurantApi.HandleFunc("POST", "/", h.createRestaurant)
+	restaurantApi.HandleFunc("PUT", "/", h.updateRestaurant)
 
 	fs := http.FileServer(&spaFileSystem{http.Dir("web/static")})
 	//if inLocalhost {

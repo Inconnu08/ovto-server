@@ -17,9 +17,10 @@ import (
 )
 
 type Restaurant struct {
+	Id string `json:"id"`
 	Title  string  `json:"title"`
 	About  string  `json:"about"`
-	Rating float64 `json:"title"`
+	Rating float64 `json:"rating, omitempty"`
 }
 
 func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime string) error {
@@ -124,28 +125,28 @@ func (s *Service) GetRestaurantByID(ctx context.Context, id string) (Restaurant,
 	return r, nil
 }
 
-func (s *Service) GetRestaurantsByFp(ctx context.Context) ([]string, error) {
+func (s *Service) GetRestaurantsByFp(ctx context.Context) ([]Restaurant, error) {
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	if !ok {
 		return nil, ErrUnauthenticated
 	}
 
-	query := "SELECT title FROM restaurant WHERE owner_id = $1"
+	query := "SELECT id, title, about FROM restaurant WHERE owner_id = $1"
 	rows, err := s.db.QueryContext(ctx, query, uid)
 	if err != nil {
 		return nil, ErrRestaurantNotFound
 	}
 
 	defer rows.Close()
-	uu := make([]string, 0, 1)
+	uu := make([]Restaurant, 0, 1)
 	for rows.Next() {
-		var u string
-		if err = rows.Scan(&u); err != nil {
-			fmt.Println(u)
+		var r Restaurant
+		if err = rows.Scan(&r.Id, &r.Title, &r.About); err != nil {
+			fmt.Println(r)
 			return nil, fmt.Errorf("could not get title: %v", err)
 		}
-
-		uu = append(uu, u)
+		fmt.Println(r)
+		uu = append(uu, r)
 	}
 
 	if err = rows.Err(); err != nil {
@@ -257,13 +258,13 @@ func (s *Service) UpdateRestaurant(ctx context.Context, id, about, phone, locati
 	defer tx.Rollback()
 
 	query, args, err := buildQuery(`
-		UPDATE INTO restaurant SET 
+		UPDATE restaurant SET 
 		{{if .about}}
 		about = @1 
-		{{end}})
+		{{end}}
 		{{if .city}}
 		, city = @2
-		{{end}})
+		{{end}}
 		{{if .area}}
 		, city = @3
 		{{end}}
@@ -280,11 +281,19 @@ func (s *Service) UpdateRestaurant(ctx context.Context, id, about, phone, locati
 		"4": phone,
 		"5": location,
 		"6": id,
+		"about": about,
+		"city": city,
+		"area": area,
+		"phone": phone,
+		"location": location,
+		"id": id,
 	})
 	if err != nil {
 		return fmt.Errorf("could not build sql query: %v", err)
 	}
 
+	fmt.Println(query)
+	fmt.Println(args)
 	_, err = tx.ExecContext(ctx, query, args...)
 	if err != nil {
 		return fmt.Errorf("failed to update restaurant: %v", err)

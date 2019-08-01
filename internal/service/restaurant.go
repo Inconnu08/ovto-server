@@ -131,7 +131,7 @@ func (s *Service) GetRestaurantsByFp(ctx context.Context) ([]Restaurant, error) 
 		return nil, ErrUnauthenticated
 	}
 
-	query := "SELECT id, title, about FROM restaurant WHERE owner_id = $1"
+	query := "SELECT id, title, about, rating FROM restaurant WHERE owner_id = $1"
 	rows, err := s.db.QueryContext(ctx, query, uid)
 	if err != nil {
 		return nil, ErrRestaurantNotFound
@@ -141,7 +141,7 @@ func (s *Service) GetRestaurantsByFp(ctx context.Context) ([]Restaurant, error) 
 	uu := make([]Restaurant, 0, 1)
 	for rows.Next() {
 		var r Restaurant
-		if err = rows.Scan(&r.Id, &r.Title, &r.About); err != nil {
+		if err = rows.Scan(&r.Id, &r.Title, &r.About, &r.Rating); err != nil {
 			fmt.Println(r)
 			return nil, fmt.Errorf("could not get title: %v", err)
 		}

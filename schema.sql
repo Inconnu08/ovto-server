@@ -66,6 +66,7 @@ CREATE TABLE IF NOT EXISTS restaurant
     closing_time    VARCHAR NOT NULL,
     ambassador_code VARCHAR,
     vat_reg_no      VARCHAR,
+    rating          DECIMAL(1,1) DEFAULT 0.0,
     active          BOOLEAN NOT NULL DEFAULT true,
     close_status    BOOLEAN NOT NULL DEFAULT true,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()

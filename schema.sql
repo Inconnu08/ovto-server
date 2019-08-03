@@ -71,6 +71,14 @@ CREATE TABLE IF NOT EXISTS restaurant
     close_status    BOOLEAN NOT NULL DEFAULT true,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
+
+CREATE TABLE IF NOT EXISTS restaurant_gallery
+(
+    id              SERIAL  NOT NULL PRIMARY KEY,
+    restaurant_id   INT NOT NULL REFERENCES restaurant,
+    image           VARCHAR NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
 -- INSERT INTO users (id, email, fullname)
 -- VALUES (1, 'jon@example.org', 'jon snow'),
 --        (2, 'jane@example.org', 'night king');

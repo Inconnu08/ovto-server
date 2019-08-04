@@ -19,8 +19,8 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
-// MaxAvatarBytes to read.
-const MaxAvatarBytes = 5 << 20 // 5MB
+// MaxImageBytes to read.
+const MaxImageBytes = 5 << 20 // 5MB
 
 var (
 	rxEmail    = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
@@ -190,7 +190,7 @@ func (s *Service) UpdateDisplayPicture(ctx context.Context, r io.Reader) (string
 		return "", ErrUnauthenticated
 	}
 
-	r = io.LimitReader(r, MaxAvatarBytes)
+	r = io.LimitReader(r, MaxImageBytes)
 	img, format, err := image.Decode(r)
 	if err == image.ErrFormat {
 		return "", ErrUnsupportedPictureFormat

@@ -96,7 +96,7 @@ func (h *handler) deleteUser(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) updateDisplayPicture(w http.ResponseWriter, r *http.Request) {
-	r.Body = http.MaxBytesReader(w, r.Body, service.MaxAvatarBytes)
+	r.Body = http.MaxBytesReader(w, r.Body, service.MaxImageBytes)
 	defer r.Body.Close()
 	avatarURL, err := h.UpdateDisplayPicture(r.Context(), r.Body)
 	if err == service.ErrUnauthenticated {

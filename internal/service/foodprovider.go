@@ -93,7 +93,7 @@ func (s *Service) UpdateFPDisplayPicture(ctx context.Context, r io.Reader) (stri
 		return "", ErrUnauthenticated
 	}
 
-	r = io.LimitReader(r, MaxAvatarBytes)
+	r = io.LimitReader(r, MaxImageBytes)
 	img, format, err := image.Decode(r)
 	if err == image.ErrFormat {
 		return "", ErrUnsupportedPictureFormat

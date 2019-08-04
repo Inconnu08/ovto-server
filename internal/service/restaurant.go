@@ -346,7 +346,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 		return "", ErrInvalidRestaurantId
 	}
 
-	r = io.LimitReader(r, MaxAvatarBytes)
+	r = io.LimitReader(r, MaxImageBytes)
 	img, format, err := image.Decode(r)
 	if err == image.ErrFormat {
 		return "", ErrUnsupportedPictureFormat
@@ -411,7 +411,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 	return dpURL.String(), nil
 }
 
-// UpdateRestaurantDisplayPicture of the authenticated restaurant returning the new avatar URL.
+// UpdatePicture is a utility function returning the new image URL.
 func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, id, dir, query, urlPath string, uid int64, h, w int) (string, error) {
 	if id != "" {
 		if !rxUUID.MatchString(id) {
@@ -419,14 +419,14 @@ func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, id, dir, query
 		}
 	}
 
-	r = io.LimitReader(r, MaxAvatarBytes)
+	r = io.LimitReader(r, MaxImageBytes)
 	img, format, err := image.Decode(r)
 	if err == image.ErrFormat {
 		return "", ErrUnsupportedPictureFormat
 	}
 
 	if err != nil {
-		return "", fmt.Errorf("could not read imageName: %v", err)
+		return "", fmt.Errorf("could not read image name: %v", err)
 	}
 
 	if format != "png" && format != "jpeg" {
@@ -444,13 +444,13 @@ func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, id, dir, query
 		imageName += ".jpg"
 	}
 
-	displayPicturePath := path.Join(dir, id)
-	if _, err := os.Stat(displayPicturePath); os.IsNotExist(err) {
-		err = os.Mkdir(displayPicturePath, os.ModeDir)
+	picturePath := path.Join(dir, id)
+	if _, err := os.Stat(picturePath); os.IsNotExist(err) {
+		err = os.Mkdir(picturePath, os.ModeDir)
 		return "", fmt.Errorf("failed to create path for image: %v", err)
 	}
-	displayPicturePath = path.Join(displayPicturePath, imageName)
-	f, err := os.Create(displayPicturePath)
+	picturePath = path.Join(picturePath, imageName)
+	f, err := os.Create(picturePath)
 	if err != nil {
 		return "", fmt.Errorf("could not create imageName file: %v", err)
 	}
@@ -469,7 +469,7 @@ func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, id, dir, query
 	var oldImg sql.NullString
 	if err = s.db.QueryRowContext(ctx, query, imageName, uid).
 		Scan(&oldImg); err != nil {
-		defer os.Remove(displayPicturePath)
+		defer os.Remove(picturePath)
 		return "", fmt.Errorf("could not update imageName: %v", err)
 	}
 

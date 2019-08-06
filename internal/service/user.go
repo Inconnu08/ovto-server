@@ -47,8 +47,8 @@ var (
 	ErrInvalidRestaurantId = errors.New("invalid restaurant ID")
 	// ErrForbiddenFollow denotes a forbidden follow. Like following yourself.
 	ErrForbiddenFollow = errors.New("forbidden follow")
-	// ErrUnsupportedPictureFormat denotes an unsupported avatar image format.
-	ErrUnsupportedPictureFormat = errors.New("unsupported picture format")
+	// ErrUnsupportedImageFormat denotes an unsupported avatar image format.
+	ErrUnsupportedImageFormat = errors.New("unsupported picture format")
 	// ErrInvalidPassword denotes an invalid Password which could not be hashed.
 	ErrInvalidPassword = errors.New("invalid Password")
 	// ErrInvalidEmail denotes an invalid phone number.
@@ -193,7 +193,7 @@ func (s *Service) UpdateDisplayPicture(ctx context.Context, r io.Reader) (string
 	r = io.LimitReader(r, MaxImageBytes)
 	img, format, err := image.Decode(r)
 	if err == image.ErrFormat {
-		return "", ErrUnsupportedPictureFormat
+		return "", ErrUnsupportedImageFormat
 	}
 
 	if err != nil {
@@ -201,7 +201,7 @@ func (s *Service) UpdateDisplayPicture(ctx context.Context, r io.Reader) (string
 	}
 
 	if format != "png" && format != "jpeg" {
-		return "", ErrUnsupportedPictureFormat
+		return "", ErrUnsupportedImageFormat
 	}
 
 	dp, err := gonanoid.Nanoid()

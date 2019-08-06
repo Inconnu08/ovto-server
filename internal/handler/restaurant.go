@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"ovto/internal/service"
 )
@@ -131,4 +132,26 @@ func (h *handler) getRestaurants(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond(w, restaurants, http.StatusOK)
+}
+
+func (h *handler) updateRestaurantDisplayPicture(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, service.MaxImageBytes)
+	defer r.Body.Close()
+	imageURL, err := h.UpdateRestaurantDisplayPicture(r.Context(), r.Body)
+	if err == service.ErrUnauthenticated {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err == service.ErrUnsupportedImageFormat {
+		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
+		return
+	}
+
+	if err != nil {
+		respondErr(w, err)
+		return
+	}
+
+	fmt.Fprint(w, imageURL)
 }

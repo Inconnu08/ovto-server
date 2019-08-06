@@ -104,7 +104,7 @@ func (h *handler) updateDisplayPicture(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err == service.ErrUnsupportedPictureFormat {
+	if err == service.ErrUnsupportedImageFormat {
 		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
 		return
 	}

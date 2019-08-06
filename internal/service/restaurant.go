@@ -349,7 +349,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 	r = io.LimitReader(r, MaxImageBytes)
 	img, format, err := image.Decode(r)
 	if err == image.ErrFormat {
-		return "", ErrUnsupportedPictureFormat
+		return "", ErrUnsupportedImageFormat
 	}
 
 	if err != nil {
@@ -357,7 +357,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 	}
 
 	if format != "png" && format != "jpeg" {
-		return "", ErrUnsupportedPictureFormat
+		return "", ErrUnsupportedImageFormat
 	}
 
 	dp, err := gonanoid.Nanoid()
@@ -422,7 +422,7 @@ func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, id, dir, query
 	r = io.LimitReader(r, MaxImageBytes)
 	img, format, err := image.Decode(r)
 	if err == image.ErrFormat {
-		return "", ErrUnsupportedPictureFormat
+		return "", ErrUnsupportedImageFormat
 	}
 
 	if err != nil {
@@ -430,7 +430,7 @@ func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, id, dir, query
 	}
 
 	if format != "png" && format != "jpeg" {
-		return "", ErrUnsupportedPictureFormat
+		return "", ErrUnsupportedImageFormat
 	}
 
 	imageName, err := gonanoid.Nanoid()

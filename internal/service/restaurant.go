@@ -17,9 +17,10 @@ import (
 )
 
 type Restaurant struct {
-	Id string `json:"id"`
+	Id     string  `json:"id"`
 	Title  string  `json:"title"`
 	About  string  `json:"about"`
+	Role   int     `json:"role, omitempty"`
 	Rating float64 `json:"rating, omitempty"`
 }
 
@@ -90,6 +91,13 @@ func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, loc
 		return ErrUserNotFound
 	}
 
+	query = `INSERT INTO permission (id, restaurant_id, role) VALUES ($1, $2, $3)`
+	var role int
+	err = tx.QueryRowContext(ctx, query, uid, Admin).Scan(&role)
+	if err != nil {
+		return fmt.Errorf("could not create restaurant: %v", err)
+	}
+
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("[Restaurant] could not commit transaction: %v", err)
 	}
@@ -133,7 +141,7 @@ func (s *Service) GetRestaurantsByFp(ctx context.Context) ([]Restaurant, error) 
 
 	query := "SELECT id, title, about, rating FROM restaurant WHERE owner_id = $1"
 	rows, err := s.db.QueryContext(ctx, query, uid)
-	if err != nil {
+	if err == sql.ErrNoRows {
 		return nil, ErrRestaurantNotFound
 	}
 
@@ -275,18 +283,18 @@ func (s *Service) UpdateRestaurant(ctx context.Context, id, about, phone, locati
 		, city = @5
 		{{end}}
   		WHERE id = @6`, map[string]interface{}{
-		"1": about,
-		"2": city,
-		"3": area,
-		"4": phone,
-		"5": location,
-		"6": id,
-		"about": about,
-		"city": city,
-		"area": area,
-		"phone": phone,
+		"1":        about,
+		"2":        city,
+		"3":        area,
+		"4":        phone,
+		"5":        location,
+		"6":        id,
+		"about":    about,
+		"city":     city,
+		"area":     area,
+		"phone":    phone,
 		"location": location,
-		"id": id,
+		"id":       id,
 	})
 	if err != nil {
 		return fmt.Errorf("could not build sql query: %v", err)

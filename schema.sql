@@ -50,15 +50,6 @@ CREATE TABLE IF NOT EXISTS ambassador
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
-CREATE TABLE IF NOT EXISTS role
-(
-    id              INT,
-    restaurant_id   UUID,
-    permission      INT NOT NULL,
-
-    PRIMARY KEY (id, restaurant_id)
-);
-
 CREATE TABLE IF NOT EXISTS restaurant
 (
     id              UUID NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -79,6 +70,15 @@ CREATE TABLE IF NOT EXISTS restaurant
     active          BOOLEAN NOT NULL DEFAULT true,
     close_status    BOOLEAN NOT NULL DEFAULT true,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS permission
+(
+    id              INT,
+    restaurant_id   UUID REFERENCES restaurant,
+    role            INT NOT NULL,
+
+    PRIMARY KEY (id, restaurant_id)
 );
 
 CREATE TABLE IF NOT EXISTS restaurant_gallery

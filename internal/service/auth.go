@@ -44,9 +44,10 @@ type LoginOutput struct {
 }
 
 type FPLoginOutput struct {
-	Token     string              `json:"token"`
-	ExpiresAt time.Time           `json:"expiresAt"`
-	AuthUser  FoodProviderProfile `json:"authUser"`
+	Token       string              `json:"token"`
+	ExpiresAt   time.Time           `json:"expiresAt"`
+	AuthUser    FoodProviderProfile `json:"authUser"`
+	Restaurants []Restaurant        `json:"restaurants, omitempty"`
 }
 
 type GoogleAuthOutput struct {
@@ -152,8 +153,6 @@ func (s *Service) AuthFp(ctx context.Context) (User, error) {
 		return u, ErrUnauthenticated
 	}
 
-	//return s.userByID(ctx, uid)
-
 	query := "SELECT Fullname FROM foodprovider WHERE id = $1"
 	err := s.db.QueryRowContext(ctx, query, uid).Scan(&u.Fullname)
 	if err == sql.ErrNoRows {
@@ -254,6 +253,29 @@ func (s *Service) FoodProviderLogin(ctx context.Context, email string, password 
 
 	if err = bcrypt.CompareHashAndPassword(hPassword, []byte(password)); err != nil {
 		return out, ErrInvalidPassword
+	}
+
+	// TODO
+	query = "SELECT * FROM permission WHERE id = $1"
+	rows, err := s.db.QueryContext(ctx, query, &out.AuthUser.ID)
+	if err != sql.ErrNoRows {
+		defer rows.Close()
+		restaurantList := make([]Restaurant, 0)
+		for rows.Next() {
+			var r Restaurant
+			if err = rows.Scan(&r.Id, &r.Role, &r.Title); err != nil {
+				fmt.Println(r)
+				return out, fmt.Errorf("could not iterate properly: %v", err)
+			}
+			fmt.Println(r)
+			restaurantList = append(restaurantList, r)
+		}
+
+		if err = rows.Err(); err != nil {
+			return out, fmt.Errorf("could not iterate restaurants: %v", err)
+		}
+
+		out.Restaurants = restaurantList
 	}
 
 	//out.AuthUser.AvatarURL = s.avatarURL(avatar)

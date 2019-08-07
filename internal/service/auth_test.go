@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"fmt"
 	"net/url"
 	"testing"
 
@@ -91,6 +92,9 @@ func TestLoginFoodProvider(t *testing.T) {
 	codec := branca.NewBranca("supersecretkeyyoushouldnotcommit")
 	codec.SetTTL(uint32(TokenLifeSpan.Seconds()))
 
+	fpCodec := branca.NewBranca("supersecretkeyyoushouldcommitnot")
+	fpCodec.SetTTL(uint32(TokenLifeSpan.Seconds()))
+
 	c, err := pgx.ParseURI(pgURL.String())
 	if err != nil {
 		log.Fatalf(err.Error())
@@ -102,7 +106,7 @@ func TestLoginFoodProvider(t *testing.T) {
 		log.Fatalf("failed to validate schema: %v\n", err)
 	}
 
-	s := New(db, codec, url.URL{})
+	s := New(db, codec, fpCodec, nil, url.URL{})
 
 	_ = s.CreateFoodProvider(ctx, "johndoe@gmail.com", "Taufiq Rahman", "01767586798", "coolpass")
 
@@ -110,6 +114,7 @@ func TestLoginFoodProvider(t *testing.T) {
 		t.Run(test.Label, func(t *testing.T) {
 			Got, err := s.FoodProviderLogin(ctx, test.Email, test.Password)
 			if test.Condition == "success" {
+				fmt.Println(Got)
 				if Got.AuthUser.Fullname != "Taufiq Rahman" {
 					t.Error("Got:", Got, "| Want:", test.Want)
 				}

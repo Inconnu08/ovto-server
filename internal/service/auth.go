@@ -256,8 +256,9 @@ func (s *Service) FoodProviderLogin(ctx context.Context, email string, password 
 	}
 
 	// TODO
-	query = "SELECT * FROM permission WHERE id = $1"
+	query = "SELECT restaurant_id, role, restaurant FROM permission WHERE id = $1"
 	rows, err := s.db.QueryContext(ctx, query, &out.AuthUser.ID)
+	fmt.Println(err)
 	if err != sql.ErrNoRows {
 		defer rows.Close()
 		restaurantList := make([]Restaurant, 0)

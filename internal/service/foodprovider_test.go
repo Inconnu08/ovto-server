@@ -22,9 +22,9 @@ func TestCreateFoodProvider(t *testing.T) {
 		Password  string
 	}{
 		// success condition
-		{Label: "Test should login Food Provider successfully", Condition: "success", Want: nil, Fullname: "Taufiq Rahman", Email: "johndoe@gmail.com", Phone:"01767586798", Password: "coolpass"},
+		{Label: "Test should create Food Provider successfully", Condition: "success", Want: nil, Fullname: "Taufiq Rahman", Email: "johndoe@gmail.com", Phone:"01767586798", Password: "coolpass"},
 		// error condition
-		{Label: "Test should login should fail to create with invalid phone", Condition: "fail", Want: ErrInvalidPhone, Fullname: "Taufiq Rahman", Email: "johndoe@gmail.com", Phone:"01767586798c",  Password: "ilovegolang"},
+		{Label: "Test should should fail to create with invalid phone", Condition: "fail", Want: ErrInvalidPhone, Fullname: "Taufiq Rahman", Email: "johndoe@gmail.com", Phone:"01767586798c",  Password: "ilovegolang"},
 	}
 
 	tearDown := SetupTest()

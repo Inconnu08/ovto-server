@@ -91,9 +91,9 @@ func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, loc
 		return ErrUserNotFound
 	}
 
-	query = `INSERT INTO permission (id, restaurant_id, role) VALUES ($1, $2, $3)`
+	query = `INSERT INTO permission (id, restaurant_id, restaurant, role) VALUES ($1, $2, $3, $4)`
 	var role int
-	err = tx.QueryRowContext(ctx, query, uid, Admin).Scan(&role)
+	err = tx.QueryRowContext(ctx, query, uid, id, title, Admin).Scan(&role)
 	if err != nil {
 		return fmt.Errorf("could not create restaurant: %v", err)
 	}

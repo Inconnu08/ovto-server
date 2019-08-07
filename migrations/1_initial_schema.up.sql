@@ -63,7 +63,26 @@ CREATE TABLE IF NOT EXISTS restaurant
     closing_time    VARCHAR NOT NULL,
     ambassador_code VARCHAR,
     vat_reg_no      VARCHAR,
+    rating          DECIMAL(1,1) DEFAULT 0.0 CHECK (rating >= 0),
     active          BOOLEAN NOT NULL DEFAULT true,
     close_status    BOOLEAN NOT NULL DEFAULT true,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS permission
+(
+    id              INT,
+    restaurant_id   UUID REFERENCES restaurant,
+    role            INT NOT NULL,
+    restaurant      VARCHAR NOT NULL,
+
+    PRIMARY KEY (id, restaurant_id)
+);
+
+CREATE TABLE IF NOT EXISTS restaurant_gallery
+(
+    id              SERIAL  NOT NULL PRIMARY KEY,
+    restaurant_id   UUID NOT NULL REFERENCES restaurant,
+    image           VARCHAR NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );

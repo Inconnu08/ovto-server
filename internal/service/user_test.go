@@ -51,7 +51,7 @@ func TestService_CreateUser(t *testing.T) {
 		log.Fatalf("failed to validate schema: %v\n", err)
 	}
 
-	s := New(db, codec, fpCodec, url.URL{})
+	s := New(db, codec, fpCodec, nil, url.URL{})
 
 	for _, test := range tt {
 		t.Run(test.Label, func(t *testing.T) {

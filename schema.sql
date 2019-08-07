@@ -75,7 +75,8 @@ CREATE TABLE IF NOT EXISTS restaurant
 CREATE TABLE IF NOT EXISTS permission
 (
     id              INT,
-    restaurant_id   UUID REFERENCES restaurant,
+    restaurant_id   UUID,
+    restaurant      VARCHAR NOT NULL,
     role            INT NOT NULL,
 
     PRIMARY KEY (id, restaurant_id)
@@ -84,7 +85,7 @@ CREATE TABLE IF NOT EXISTS permission
 CREATE TABLE IF NOT EXISTS restaurant_gallery
 (
     id              SERIAL  NOT NULL PRIMARY KEY,
-    restaurant_id   INT NOT NULL REFERENCES restaurant,
+    restaurant_id   UUID NOT NULL REFERENCES restaurant,
     image           VARCHAR NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );

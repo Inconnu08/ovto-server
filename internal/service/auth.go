@@ -47,7 +47,7 @@ type FPLoginOutput struct {
 	Token       string              `json:"token"`
 	ExpiresAt   time.Time           `json:"expiresAt"`
 	AuthUser    FoodProviderProfile `json:"authUser"`
-	Restaurants []Restaurant        `json:"restaurants, omitempty"`
+	Restaurants *[]Restaurant        `json:"restaurants, omitempty"`
 }
 
 type GoogleAuthOutput struct {
@@ -264,11 +264,13 @@ func (s *Service) FoodProviderLogin(ctx context.Context, email string, password 
 		restaurantList := make([]Restaurant, 0)
 		for rows.Next() {
 			var r Restaurant
-			if err = rows.Scan(&r.Id, &r.Role, &r.Title); err != nil {
+			var rl int
+			if err = rows.Scan(&r.Id, &rl, &r.Title); err != nil {
 				fmt.Println(r)
 				return out, fmt.Errorf("could not iterate properly: %v", err)
 			}
 			fmt.Println(r)
+			r.Role = getRole(rl)
 			restaurantList = append(restaurantList, r)
 		}
 
@@ -276,7 +278,7 @@ func (s *Service) FoodProviderLogin(ctx context.Context, email string, password 
 			return out, fmt.Errorf("could not iterate restaurants: %v", err)
 		}
 
-		out.Restaurants = restaurantList
+		out.Restaurants = &restaurantList
 	}
 
 	//out.AuthUser.AvatarURL = s.avatarURL(avatar)

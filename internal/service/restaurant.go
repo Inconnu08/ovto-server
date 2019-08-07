@@ -19,8 +19,8 @@ import (
 type Restaurant struct {
 	Id     string  `json:"id"`
 	Title  string  `json:"title"`
-	About  string  `json:"about"`
-	Role   int     `json:"role, omitempty"`
+	About  string  `json:"about, omitempty"`
+	Role   string  `json:"role, omitempty"`
 	Rating float64 `json:"rating, omitempty"`
 }
 
@@ -92,10 +92,9 @@ func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, loc
 	}
 
 	query = `INSERT INTO permission (id, restaurant_id, restaurant, role) VALUES ($1, $2, $3, $4)`
-	var role int
-	err = tx.QueryRowContext(ctx, query, uid, id, title, Admin).Scan(&role)
+	_, err = tx.ExecContext(ctx, query, uid, id, title, Admin)
 	if err != nil {
-		return fmt.Errorf("could not create restaurant: %v", err)
+		return fmt.Errorf("[Permission] could not create restaurant: %v", err)
 	}
 
 	if err := tx.Commit(); err != nil {
@@ -149,10 +148,12 @@ func (s *Service) GetRestaurantsByFp(ctx context.Context) ([]Restaurant, error) 
 	uu := make([]Restaurant, 0, 1)
 	for rows.Next() {
 		var r Restaurant
-		if err = rows.Scan(&r.Id, &r.Title, &r.About, &r.Rating); err != nil {
+		var rl int
+		if err = rows.Scan(&r.Id, &r.Title, &rl); err != nil {
 			fmt.Println(r)
 			return nil, fmt.Errorf("could not get title: %v", err)
 		}
+		r.Role = getRole(rl)
 		fmt.Println(r)
 		uu = append(uu, r)
 	}

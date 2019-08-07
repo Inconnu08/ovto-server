@@ -19,3 +19,20 @@ type Service struct {
 func New(db *sql.DB, userCodec, foodProviderCodec, ambassadorCodec *branca.Branca, origin url.URL) *Service {
 	return &Service{db, userCodec, foodProviderCodec, ambassadorCodec, origin}
 }
+
+func getRole(role int) string {
+	switch role {
+	case 5:
+		return "Admin"
+	case 10:
+		 return "Owner"
+	case 15:
+		return "Manager"
+	case 20:
+		return "Supervisor"
+	case 25:
+		return "Waiter"
+	}
+
+	return "Waiter"
+}

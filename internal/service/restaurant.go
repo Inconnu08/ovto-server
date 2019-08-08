@@ -345,14 +345,18 @@ func (s *Service) UpdateRestaurantStatus(ctx context.Context, id string, closed 
 }
 
 // UpdateRestaurantDisplayPicture of the authenticated restaurant returning the new avatar URL.
-func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reader, id string) (string, error) {
+func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reader, rid string) (string, error) {
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	if !ok {
 		return "", ErrUnauthenticated
 	}
 
-	if !rxUUID.MatchString(id) {
+	if !rxUUID.MatchString(rid) {
 		return "", ErrInvalidRestaurantId
+	}
+
+	if err := s.checkPermission(ctx, Manager, uid, rid); err != nil {
+		return "", ErrUnauthenticated
 	}
 
 	r = io.LimitReader(r, MaxImageBytes)
@@ -380,7 +384,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 		dp += ".jpg"
 	}
 
-	displayPicturePath := path.Join(restaurantDir, id)
+	displayPicturePath := path.Join(restaurantDir, rid)
 	if _, err := os.Stat(displayPicturePath); os.IsNotExist(err) {
 		err = os.Mkdir(displayPicturePath, os.ModeDir)
 		return "", fmt.Errorf("failed to create path for image: %v", err)
@@ -404,18 +408,18 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 
 	var oldDp sql.NullString
 	if err = s.db.QueryRowContext(ctx, `
-		UPDATE restaurant SET avatar = $1 WHERE id = $2
-		RETURNING (SELECT avatar FROM restaurant WHERE id = $2) AS old_dp`, dp, uid).
+		UPDATE restaurant SET avatar = $1 WHERE rid = $2
+		RETURNING (SELECT avatar FROM restaurant WHERE rid = $2) AS old_dp`, dp, uid).
 		Scan(&oldDp); err != nil {
 		defer os.Remove(displayPicturePath)
 		return "", fmt.Errorf("could not update dp: %v", err)
 	}
 
 	if oldDp.Valid {
-		defer os.Remove(path.Join(restaurantDir, id, oldDp.String))
+		defer os.Remove(path.Join(restaurantDir, rid, oldDp.String))
 	}
 	dpURL := s.origin
-	dpURL.Path = "/img/restaurant/" + id + "/" + dp
+	dpURL.Path = "/img/restaurant/" + rid + "/" + dp
 
 	return dpURL.String(), nil
 }

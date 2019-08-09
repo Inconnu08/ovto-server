@@ -12,7 +12,7 @@ import (
 )
 
 type loginInput struct {
-	Email    string `json:"email"`
+	Phone    string `json:"phone"`
 	Password string `json:"password"`
 }
 
@@ -68,13 +68,13 @@ func (h *handler) userLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, err := h.UserLogin(r.Context(), in.Email, in.Password)
+	out, err := h.UserLogin(r.Context(), in.Phone, in.Password)
 	if err == service.ErrUnimplemented {
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
 
-	if err == service.ErrInvalidEmail {
+	if err == service.ErrInvalidPhone {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}
@@ -105,13 +105,13 @@ func (h *handler) foodProviderLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	out, err := h.FoodProviderLogin(r.Context(), in.Email, in.Password)
+	out, err := h.FoodProviderLogin(r.Context(), in.Phone, in.Password)
 	if err == service.ErrUnimplemented {
 		http.Error(w, err.Error(), http.StatusNotImplemented)
 		return
 	}
 
-	if err == service.ErrInvalidEmail {
+	if err == service.ErrInvalidPhone {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return
 	}

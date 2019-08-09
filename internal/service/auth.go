@@ -191,18 +191,18 @@ func (s *Service) AuthFoodProvider(ctx context.Context) (User, error) {
 	return u, nil
 }
 
-func (s *Service) UserLogin(ctx context.Context, email string, password string) (LoginOutput, error) {
+func (s *Service) UserLogin(ctx context.Context, phone string, password string) (LoginOutput, error) {
 	var out LoginOutput
 
 	password = strings.TrimSpace(password)
-	email = strings.TrimSpace(email)
-	if !rxEmail.MatchString(email) {
-		return out, ErrInvalidEmail
+	phone = strings.TrimSpace(phone)
+	if !rxPhone.MatchString(phone) {
+		return out, ErrInvalidPhone
 	}
 
 	//var avatar sql.NullString
-	query := "SELECT id, Fullname FROM users WHERE Email = $1"
-	err := s.db.QueryRowContext(ctx, query, email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname)
+	query := "SELECT id, Fullname FROM users WHERE phone = $1"
+	err := s.db.QueryRowContext(ctx, query, phone).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname)
 	if err == sql.ErrNoRows {
 		return out, ErrUserNotFound
 	}
@@ -234,19 +234,19 @@ func (s *Service) UserLogin(ctx context.Context, email string, password string) 
 	return out, nil
 }
 
-func (s *Service) FoodProviderLogin(ctx context.Context, email string, password string) (FPLoginOutput, error) {
+func (s *Service) FoodProviderLogin(ctx context.Context, phone string, password string) (FPLoginOutput, error) {
 	var out FPLoginOutput
 
 	password = strings.TrimSpace(password)
-	email = strings.TrimSpace(email)
-	if !rxEmail.MatchString(email) {
-		return out, ErrInvalidEmail
+	phone = strings.TrimSpace(phone)
+	if !rxPhone.MatchString(phone) {
+		return out, ErrInvalidPhone
 	}
 
 	//var avatar sql.NullString
 	var hPassword []byte
-	query := "SELECT id, Fullname, Email, Phone, Password FROM foodprovider WHERE Email = $1"
-	err := s.db.QueryRowContext(ctx, query, email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname, &out.AuthUser.Email, &out.AuthUser.Phone, &hPassword)
+	query := "SELECT id, Fullname, Email, Phone, Password FROM foodprovider WHERE phone = $1"
+	err := s.db.QueryRowContext(ctx, query, phone).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname, &out.AuthUser.Email, &out.AuthUser.Phone, &hPassword)
 	if err == sql.ErrNoRows {
 		return out, ErrUserNotFound
 	}
@@ -293,19 +293,19 @@ func (s *Service) FoodProviderLogin(ctx context.Context, email string, password 
 	return out, nil
 }
 
-func (s *Service) AmbassadorLogin(ctx context.Context, email string, password string) (LoginOutput, error) {
+func (s *Service) AmbassadorLogin(ctx context.Context, phone string, password string) (LoginOutput, error) {
 	var out LoginOutput
 
 	password = strings.TrimSpace(password)
-	email = strings.TrimSpace(email)
-	if !rxEmail.MatchString(email) {
-		return out, ErrInvalidEmail
+	phone = strings.TrimSpace(phone)
+	if !rxPhone.MatchString(phone) {
+		return out, ErrInvalidPhone
 	}
 
 	//var avatar sql.NullString
 	var hPassword []byte
-	query := "SELECT id, Fullname, Password FROM Ambassador WHERE Email = $1"
-	err := s.db.QueryRowContext(ctx, query, email).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname, &hPassword)
+	query := "SELECT id, Fullname, Password FROM Ambassador WHERE phone = $1"
+	err := s.db.QueryRowContext(ctx, query, phone).Scan(&out.AuthUser.ID, &out.AuthUser.Fullname, &hPassword)
 	if err == sql.ErrNoRows {
 		return out, ErrUserNotFound
 	}

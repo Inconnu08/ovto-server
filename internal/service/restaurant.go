@@ -356,6 +356,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 	}
 
 	if err := s.checkPermission(ctx, Manager, uid, rid); err != nil {
+		fmt.Println("Permission Failed!")
 		return "", ErrUnauthenticated
 	}
 
@@ -408,8 +409,8 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 
 	var oldDp sql.NullString
 	if err = s.db.QueryRowContext(ctx, `
-		UPDATE restaurant SET avatar = $1 WHERE rid = $2
-		RETURNING (SELECT avatar FROM restaurant WHERE rid = $2) AS old_dp`, dp, uid).
+		UPDATE restaurant SET avatar = $1 WHERE id = $2
+		RETURNING (SELECT avatar FROM restaurant WHERE id = $2) AS old_dp`, dp, rid).
 		Scan(&oldDp); err != nil {
 		defer os.Remove(displayPicturePath)
 		return "", fmt.Errorf("could not update dp: %v", err)

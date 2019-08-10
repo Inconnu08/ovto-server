@@ -85,8 +85,8 @@ func (s *Service) CreateFoodProvider(ctx context.Context, email, fullname, phone
 
 	return nil
 }
-func (s *Service) CreateRole(ctx context.Context, rid, fullname, phone, password string, role int) error {
-	uid, ok := ctx.Value(KeyAuthUserID).(int64)
+func (s *Service) CreateRole(ctx context.Context, rid, fullname, phone, password, role string) error {
+	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	if !ok {
 		return ErrUnauthenticated
 	}
@@ -101,7 +101,12 @@ func (s *Service) CreateRole(ctx context.Context, rid, fullname, phone, password
 		return ErrInvalidPhone
 	}
 
-	title, err := s.checkPermission(ctx, Manager, uid, rid)
+	roleLevel, err := getRoleLevel(role)
+	if err != nil {
+		return ErrUnauthenticated
+	}
+
+	title, err := s.checkPermission(ctx, Admin, uid, rid)
 	if err != nil {
 		fmt.Println("Permission Failed!")
 		return ErrUnauthenticated
@@ -119,7 +124,7 @@ func (s *Service) CreateRole(ctx context.Context, rid, fullname, phone, password
 	}
 
 	var id int
-	query := "INSERT INTO foodprovider (fullname, phone, Password) VALUES ($1, $2, $3) RETURNING id"
+	query := "INSERT INTO foodprovider (fullname, phone, password) VALUES ($1, $2, $3) RETURNING id"
 	err = tx.QueryRowContext(ctx, query, fullname, phone, hPassword).Scan(&id)
 	unique := isUniqueViolation(err)
 	if unique {
@@ -131,7 +136,7 @@ func (s *Service) CreateRole(ctx context.Context, rid, fullname, phone, password
 	}
 
 	query = `INSERT INTO permission (id, restaurant_id, restaurant, role) VALUES ($1, $2, $3, $4)`
-	_, err = tx.ExecContext(ctx, query, uid, id, title, Admin)
+	_, err = tx.ExecContext(ctx, query, id, rid, title, roleLevel)
 	if err != nil {
 		return fmt.Errorf("[Permission] could not create restaurant: %v", err)
 	}

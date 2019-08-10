@@ -33,3 +33,37 @@ func (s *Service) checkPermission(ctx context.Context, level permission, userId 
 
 	return title, nil
 }
+
+func getRole(role int) string {
+	switch role {
+	case 5:
+		return "Admin"
+	case 10:
+		return "Owner"
+	case 15:
+		return "Manager"
+	case 20:
+		return "Supervisor"
+	case 25:
+		return "Waiter"
+	}
+
+	return "Waiter"
+}
+
+func getRoleLevel(role string) (permission, error) {
+	switch role {
+	case "Admin":
+		return Admin, nil
+	case "Owner":
+		return Owner, nil
+	case "Manager":
+		return Manager, nil
+	case "Supervisor":
+		return Supervisor, nil
+	case "Waiter":
+		return Waiter, nil
+	}
+
+	return 0, fmt.Errorf("invalid role level")
+}

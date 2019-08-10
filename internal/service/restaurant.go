@@ -355,7 +355,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 		return "", ErrInvalidRestaurantId
 	}
 
-	if err := s.checkPermission(ctx, Manager, uid, rid); err != nil {
+	if _, err := s.checkPermission(ctx, Manager, uid, rid); err != nil {
 		fmt.Println("Permission Failed!")
 		return "", ErrUnauthenticated
 	}

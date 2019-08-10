@@ -15,20 +15,21 @@ const (
 	Waiter
 )
 
-func (s *Service) checkPermission(ctx context.Context, level permission, userId int64, RestaurantId string) error {
+func (s *Service) checkPermission(ctx context.Context, level permission, userId int64, RestaurantId string) (string, error) {
 	var role permission
-	query := `SELECT role FROM permission WHERE id = $1 AND restaurant_id = $2`
-	err := s.db.QueryRowContext(ctx, query, userId, RestaurantId).Scan(&role)
+	var title string
+	query := `SELECT title, role FROM permission WHERE id = $1 AND restaurant_id = $2`
+	err := s.db.QueryRowContext(ctx, query, userId, RestaurantId).Scan(&title, &role)
 	if err != nil {
 		fmt.Println(err)
-		return fmt.Errorf("failed to read foodprovider's role: %v", err)
+		return "", fmt.Errorf("failed to read foodprovider's role: %v", err)
 	}
 
 	fmt.Println("ROLE:", role)
 	fmt.Println("LEVEL:", level)
 	if role >= level {
-		return ErrUnauthenticated
+		return "", ErrUnauthenticated
 	}
 
-	return nil
+	return title, nil
 }

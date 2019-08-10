@@ -85,6 +85,67 @@ func (s *Service) CreateFoodProvider(ctx context.Context, email, fullname, phone
 
 	return nil
 }
+func (s *Service) CreateRole(ctx context.Context, rid, fullname, phone, password string, role int) error {
+	uid, ok := ctx.Value(KeyAuthUserID).(int64)
+	if !ok {
+		return ErrUnauthenticated
+	}
+
+	fullname = strings.TrimSpace(fullname)
+	if !rxFullname.MatchString(fullname) {
+		return ErrInvalidFullname
+	}
+
+	phone = strings.TrimSpace(phone)
+	if !rxPhone.MatchString(phone) {
+		return ErrInvalidPhone
+	}
+
+	title, err := s.checkPermission(ctx, Manager, uid, rid)
+	if err != nil {
+		fmt.Println("Permission Failed!")
+		return ErrUnauthenticated
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return fmt.Errorf("could not begin tx: %v", err)
+	}
+	defer tx.Rollback()
+
+	hPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+	if err != nil {
+		return err
+	}
+
+	var id int
+	query := "INSERT INTO foodprovider (fullname, phone, Password) VALUES ($1, $2, $3) RETURNING id"
+	err = tx.QueryRowContext(ctx, query, fullname, phone, hPassword).Scan(&id)
+	unique := isUniqueViolation(err)
+	if unique {
+		if strings.Contains(err.Error(), "Email") || strings.Contains(err.Error(), "_email") {
+			return ErrEmailTaken
+		} else {
+			return ErrPhoneNumberTaken
+		}
+	}
+
+	query = `INSERT INTO permission (id, restaurant_id, restaurant, role) VALUES ($1, $2, $3, $4)`
+	_, err = tx.ExecContext(ctx, query, uid, id, title, Admin)
+	if err != nil {
+		return fmt.Errorf("[Permission] could not create restaurant: %v", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("could not commit transaction: %v", err)
+	}
+
+	if err != nil {
+		return fmt.Errorf("could not create food provider: %v", err)
+	}
+
+	return nil
+}
 
 // UpdateDisplayPicture of the authenticated user returning the new avatar URL.
 func (s *Service) UpdateFPDisplayPicture(ctx context.Context, r io.Reader) (string, error) {

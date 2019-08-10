@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS restaurant
     title           VARCHAR(50) NOT NULL UNIQUE,
     owner_id        INT NOT NULL REFERENCES foodprovider,
     avatar          VARCHAR,
+    cover           VARCHAR,
     about           VARCHAR,
     location        VARCHAR NOT NULL,
     city            VARCHAR NOT NULL,

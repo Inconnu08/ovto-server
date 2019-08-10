@@ -160,3 +160,29 @@ func (h *handler) updateRestaurantDisplayPicture(w http.ResponseWriter, r *http.
 
 	fmt.Fprint(w, imageURL)
 }
+
+func (h *handler) updateRestaurantCoverPicture(w http.ResponseWriter, r *http.Request) {
+	r.Body = http.MaxBytesReader(w, r.Body, service.MaxImageBytes)
+	defer r.Body.Close()
+
+	ctx := r.Context()
+	rID := way.Param(ctx, "restaurant_id")
+
+	imageURL, err := h.UpdateRestaurantCoverPicture(ctx, r.Body, rID)
+	if err == service.ErrUnauthenticated {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err == service.ErrUnsupportedImageFormat {
+		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
+		return
+	}
+
+	if err != nil {
+		respondErr(w, err)
+		return
+	}
+
+	fmt.Fprint(w, imageURL)
+}

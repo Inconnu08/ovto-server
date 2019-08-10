@@ -426,9 +426,9 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 }
 
 // UpdatePicture is a utility function returning the new image URL.
-func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, id, dir, query, urlPath string, uid int64, h, w int) (string, error) {
-	if id != "" {
-		if !rxUUID.MatchString(id) {
+func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, rid, dir, query, urlPath string, uid int64, h, w int) (string, error) {
+	if rid != "" {
+		if !rxUUID.MatchString(rid) {
 			return "", ErrInvalidRestaurantId
 		}
 	}
@@ -458,7 +458,7 @@ func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, id, dir, query
 		imageName += ".jpg"
 	}
 
-	picturePath := path.Join(dir, id)
+	picturePath := path.Join(dir, rid)
 	if _, err := os.Stat(picturePath); os.IsNotExist(err) {
 		err = os.Mkdir(picturePath, os.ModeDir)
 		return "", fmt.Errorf("failed to create path for image: %v", err)
@@ -488,10 +488,23 @@ func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, id, dir, query
 	}
 
 	if oldImg.Valid {
-		defer os.Remove(path.Join(dir, id, oldImg.String))
+		defer os.Remove(path.Join(dir, rid, oldImg.String))
 	}
 	imgURL := s.origin
 	imgURL.Path = urlPath + imageName
 
 	return imgURL.String(), nil
+}
+
+func (s *Service) UpdateRestaurantCoverPicture(ctx context.Context, r io.Reader, rid string) (string, error) {
+	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
+	if !ok {
+		return "", ErrUnauthenticated
+	}
+
+	return s.UpdatePicture(ctx, r, rid, "cover", `
+		UPDATE restaurant SET cover = $1 WHERE id = $2
+		RETURNING (SELECT cover FROM restaurant WHERE id = $2) AS old_dp`,
+		"/img/restaurant/"+rid+"/",
+		uid, 300, 800)
 }

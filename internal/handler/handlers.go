@@ -35,7 +35,7 @@ func New(s *service.Service) http.Handler {
 	restaurantApi.HandleFunc("PUT", "/", h.updateRestaurant)
 	restaurantApi.HandleFunc("PUT", "/:restaurant_id/dp", h.updateRestaurantDisplayPicture)
 	restaurantApi.HandleFunc("PUT", "/:restaurant_id/cover", h.updateRestaurantCoverPicture)
-	restaurantApi.HandleFunc("POST", "/:restaurant_id/gallery", h.updateRestaurantCoverPicture)
+	restaurantApi.HandleFunc("POST", "/:restaurant_id/gallery", h.updateRestaurantGallery)
 
 	fs := http.FileServer(&spaFileSystem{http.Dir("web/static")})
 	//if inLocalhost {

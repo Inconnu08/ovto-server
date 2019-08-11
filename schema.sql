@@ -85,13 +85,38 @@ CREATE TABLE IF NOT EXISTS permission
 
 CREATE TABLE IF NOT EXISTS restaurant_gallery
 (
-    id              SERIAL  NOT NULL PRIMARY KEY,
+    id              SERIAL NOT NULL PRIMARY KEY,
     restaurant_id   UUID NOT NULL REFERENCES restaurant,
     image           VARCHAR NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 
     PRIMARY KEY (id, restaurant_id)
 );
+
+CREATE TABLE IF NOT EXISTS category
+(
+    id              SERIAL NOT NULL PRIMARY KEY,
+    name            VARCHAR(25) NOT NULL,
+    availability    BOOLEAN NOT NULL DEFAULT true,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+
+    PRIMARY KEY (id, restaurant_id)
+);
+
+CREATE TABLE IF NOT EXISTS item
+(
+    id              SERIAL NOT NULL PRIMARY KEY,
+    restaurant_id   UUID NOT NULL REFERENCES restaurant,
+    category_id     INT NOT NULL REFERENCES category,
+    name            VARCHAR(25) NOT NULL,
+    description     VARCHAR(255) NOT NULL,
+    price           DECIMAL(1,1) NOT NULL CHECK (price >= 0),
+    availability    BOOLEAN NOT NULL DEFAULT true,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+
+    PRIMARY KEY (id, restaurant_id)
+);
+
 -- INSERT INTO users (id, email, fullname)
 -- VALUES (1, 'jon@example.org', 'jon snow'),
 --        (2, 'jane@example.org', 'night king');

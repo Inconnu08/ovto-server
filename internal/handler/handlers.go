@@ -36,6 +36,10 @@ func New(s *service.Service) http.Handler {
 	restaurantApi.HandleFunc("PUT", "/:restaurant_id/dp", h.updateRestaurantDisplayPicture)
 	restaurantApi.HandleFunc("PUT", "/:restaurant_id/cover", h.updateRestaurantCoverPicture)
 	restaurantApi.HandleFunc("POST", "/:restaurant_id/gallery", h.updateRestaurantGallery)
+	restaurantApi.HandleFunc("POST", "/:restaurant_id/category", h.createCategory)
+	restaurantApi.HandleFunc("GET", "/:restaurant_id/category", h.getCategoriesByRestaurant)
+	restaurantApi.HandleFunc("POST", "/:restaurant_id/menu", h.createItem)
+	restaurantApi.HandleFunc("GET", "/:restaurant_id/menu", h.getMenuForFp)
 
 	fs := http.FileServer(&spaFileSystem{http.Dir("web/static")})
 	//if inLocalhost {

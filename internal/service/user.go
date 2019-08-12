@@ -45,6 +45,8 @@ var (
 	ErrTitleTaken = errors.New("title taken")
 	// ErrUnauthenticated denotes no authenticated user in context.
 	ErrInvalidRestaurantId = errors.New("invalid restaurant ID")
+	// ErrInvalidPrice denotes price is not a valid positive real number.
+	ErrInvalidPrice = errors.New("invalid price")
 	// ErrForbiddenFollow denotes a forbidden follow. Like following yourself.
 	ErrForbiddenFollow = errors.New("forbidden follow")
 	// ErrUnsupportedImageFormat denotes an unsupported avatar image format.

@@ -106,7 +106,7 @@ func (s *Service) CreateRole(ctx context.Context, rid, fullname, phone, password
 		return ErrUnauthenticated
 	}
 
-	title, err := s.checkPermission(ctx, Admin, uid, rid)
+	restaurant, err := s.checkPermission(ctx, Admin, uid, rid)
 	if err != nil {
 		fmt.Println("Permission Failed!")
 		return ErrUnauthenticated
@@ -136,7 +136,7 @@ func (s *Service) CreateRole(ctx context.Context, rid, fullname, phone, password
 	}
 
 	query = `INSERT INTO permission (id, restaurant_id, restaurant, role) VALUES ($1, $2, $3, $4)`
-	_, err = tx.ExecContext(ctx, query, id, rid, title, roleLevel)
+	_, err = tx.ExecContext(ctx, query, id, rid, restaurant, roleLevel)
 	if err != nil {
 		return fmt.Errorf("[Permission] could not create restaurant: %v", err)
 	}

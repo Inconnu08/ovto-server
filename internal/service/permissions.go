@@ -18,7 +18,7 @@ const (
 func (s *Service) checkPermission(ctx context.Context, level permission, userId int64, RestaurantId string) (string, error) {
 	var role permission
 	var title string
-	query := `SELECT title, role FROM permission WHERE id = $1 AND restaurant_id = $2`
+	query := `SELECT restaurant, role FROM permission WHERE id = $1 AND restaurant_id = $2`
 	err := s.db.QueryRowContext(ctx, query, userId, RestaurantId).Scan(&title, &role)
 	if err != nil {
 		fmt.Println(err)

@@ -17,8 +17,8 @@ type Item struct {
 }
 
 type Category struct {
-	Name string `json:"name"`
-	Id   string `json:"id"`
+	Label string `json:"label"`
+	Id    string `json:"id"`
 }
 
 //type Category struct {
@@ -48,7 +48,7 @@ func (s *Service) CreateCategory(ctx context.Context, rid, name string, availabi
 	}
 	defer tx.Rollback()
 
-	query := "INSERT INTO category(restaurant_id, name, availability) VALUES ($1, $2, $3)"
+	query := "INSERT INTO category(restaurant, label, availability) VALUES ($1, $2, $3)"
 	_, err = tx.ExecContext(ctx, query, rid, name, availability)
 	if err != nil {
 		return fmt.Errorf("failed to update restaurant: %v", err)
@@ -74,11 +74,11 @@ func (s *Service) GetCategoriesByRestaurant(ctx context.Context, rid string) ([]
 	}
 
 	query := `
-		SELECT category.name, category.id
+		SELECT label, id
  		FROM category
-		INNER JOIN item ON category.id = item.category_id
-		WHERE item.restaurant_id = $1`
+		WHERE restaurant = $1`
 	rows, err := s.db.QueryContext(ctx, query, rid)
+	fmt.Println("ROWS:", err)
 	if err == sql.ErrNoRows {
 		return c, nil
 	}
@@ -86,7 +86,7 @@ func (s *Service) GetCategoriesByRestaurant(ctx context.Context, rid string) ([]
 	defer rows.Close()
 	for rows.Next() {
 		var i Category
-		if err = rows.Scan(&i.Name, &i.Name, &i.Id); err != nil {
+		if err = rows.Scan(&i.Label, &i.Id); err != nil {
 			fmt.Println(i)
 			return nil, fmt.Errorf("could not get category: %v", err)
 		}

@@ -106,8 +106,8 @@ CREATE TABLE IF NOT EXISTS category
 CREATE TABLE IF NOT EXISTS item
 (
     id              SERIAL NOT NULL PRIMARY KEY,
-    restaurant_id   UUID NOT NULL REFERENCES restaurant (id),
-    category_id     SERIAL NOT NULL REFERENCES category (id),
+    restaurant_id   UUID NOT NULL REFERENCES restaurant,
+    category_id     SERIAL NOT NULL REFERENCES category,
     name            VARCHAR(25) NOT NULL,
     description     VARCHAR(255) NOT NULL,
     price           DECIMAL(1,1) NOT NULL CHECK (price >= 0),

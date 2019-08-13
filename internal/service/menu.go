@@ -8,6 +8,7 @@ import (
 )
 
 type Item struct {
+	Id 				  string  `json:"id"`
 	Name              string  `json:"name,omitempty"`
 	Category          string  `json:"category,omitempty"`
 	CategoryAvailable string  `json:"category_available,omitempty"`
@@ -38,8 +39,8 @@ func (s *Service) CreateCategory(ctx context.Context, rid, name string, availabi
 	name = strings.TrimSpace(name)
 
 	if _, err := s.checkPermission(ctx, Manager, uid, rid); err != nil {
-		fmt.Println("Permission Failed!")
-		return ErrUnauthenticated
+		fmt.Println("[Permission Failed]:", err)
+		return err
 	}
 
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -186,22 +187,23 @@ func (s *Service) GetMenuForFp(ctx context.Context, rid string) ([]Item, error) 
 	if !rxUUID.MatchString(rid) {
 		return m, ErrRestaurantNotFound
 	}
-
-	query := `
-		SELECT item.id, name, category.name, category.availability, description, price, item.availability
- 		FROM category
-		INNER JOIN item ON category.id = item.category_id
-		WHERE item.restaurant_id = $1`
+//, c.label, i.name, c.availability, i.description, i.price, i.availability 		INNER JOIN item i ON c.id = i.category_id
+	query := `SELECT name FROM item WHERE restaurant_id = $1`
 	rows, err := s.db.QueryContext(ctx, query, rid)
+	fmt.Println("[GET MENU]:", err)
+	fmt.Println("[GET MENU]:", rows)
 	if err == sql.ErrNoRows {
+		fmt.Println("[NO ROWS]:", err)
 		return m, nil
 	}
 
 	defer rows.Close()
+	fmt.Println("[NEXT]:", rows.Next())
 	for rows.Next() {
+		fmt.Println("[ENTER LOOP]")
 		var i Item
-		if err = rows.Scan(&i.Name, &i.Category, &i.CategoryAvailable, &i.Description, &i.Price, &i.Availability); err != nil {
-			fmt.Println(i)
+		if err = rows.Scan(&i.Id, &i.Category, &i.Name, &i.CategoryAvailable, &i.Description, &i.Price, &i.Availability); err != nil {
+			fmt.Println("[ITEM]", i)
 			return nil, fmt.Errorf("could not get item: %v", err)
 		}
 

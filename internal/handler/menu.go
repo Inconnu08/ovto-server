@@ -15,11 +15,11 @@ type CategoryInput struct {
 }
 
 type ItemInput struct {
-	Name         string  `json:"name,omitempty"`
-	Category     string  `json:"category,omitempty"`
-	Description  string  `json:"description,omitempty"`
-	Price        float64 `json:"price,omitempty"`
-	Availability bool    `json:"availability,omitempty"`
+	Name         string  `json:"name"`
+	Category     string  `json:"category"`
+	Description  string  `json:"description"`
+	Price        float64 `json:"price"`
+	Availability bool    `json:"availability"`
 }
 
 func (h *handler) createCategory(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +102,7 @@ func (h *handler) createItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respond(w, nil, http.StatusOK)
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func (h *handler) getMenuForFp(w http.ResponseWriter, r *http.Request) {

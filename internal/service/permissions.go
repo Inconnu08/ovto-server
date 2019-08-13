@@ -2,6 +2,7 @@ package service
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 )
 
@@ -21,7 +22,9 @@ func (s *Service) checkPermission(ctx context.Context, level permission, userId 
 	query := `SELECT restaurant, role FROM permission WHERE id = $1 AND restaurant_id = $2`
 	err := s.db.QueryRowContext(ctx, query, userId, RestaurantId).Scan(&title, &role)
 	if err != nil {
-		fmt.Println(err)
+		if err == sql.ErrNoRows {
+			return "", ErrRestaurantNotFound
+		}
 		return "", fmt.Errorf("failed to read foodprovider's role: %v", err)
 	}
 
@@ -36,15 +39,15 @@ func (s *Service) checkPermission(ctx context.Context, level permission, userId 
 
 func getRole(role int) string {
 	switch role {
-	case 5:
+	case 0:
 		return "Admin"
-	case 10:
+	case 5:
 		return "Owner"
-	case 15:
+	case 10:
 		return "Manager"
-	case 20:
+	case 15:
 		return "Supervisor"
-	case 25:
+	case 20:
 		return "Waiter"
 	}
 

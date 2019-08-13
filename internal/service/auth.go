@@ -270,6 +270,7 @@ func (s *Service) FoodProviderLogin(ctx context.Context, phone string, password 
 				return out, fmt.Errorf("could not iterate properly: %v", err)
 			}
 			fmt.Println(r)
+			fmt.Println("[ROLE]:", rl, Admin)
 			r.Role = getRole(rl)
 			restaurantList = append(restaurantList, r)
 		}

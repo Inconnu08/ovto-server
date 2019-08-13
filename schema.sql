@@ -114,7 +114,7 @@ CREATE TABLE IF NOT EXISTS item
     availability    BOOLEAN NOT NULL DEFAULT true,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    UNIQUE (id, restaurant_id)
+    UNIQUE (restaurant_id, name)
 );
 
 CREATE TABLE IF NOT EXISTS item_gallery

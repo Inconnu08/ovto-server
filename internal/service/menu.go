@@ -8,7 +8,7 @@ import (
 )
 
 type Item struct {
-	Id 				  string  `json:"id"`
+	Id                string  `json:"id"`
 	Name              string  `json:"name"`
 	Category          string  `json:"category"`
 	CategoryAvailable string  `json:"category_available"`
@@ -19,7 +19,7 @@ type Item struct {
 
 type Category struct {
 	Label string `json:"label"`
-	Id    string `json:"id"`
+	Id    int64  `json:"id"`
 }
 
 //type Category struct {
@@ -51,6 +51,11 @@ func (s *Service) CreateCategory(ctx context.Context, rid, name string, availabi
 
 	query := "INSERT INTO category(restaurant, label, availability) VALUES ($1, $2, $3)"
 	_, err = tx.ExecContext(ctx, query, rid, name, availability)
+	fk := isForeignKeyViolation(err)
+	if fk {
+		return ErrTitleTaken
+	}
+
 	if err != nil {
 		return fmt.Errorf("failed to update restaurant: %v", err)
 	}
@@ -189,7 +194,7 @@ func (s *Service) GetMenuForFp(ctx context.Context, rid string) ([]Item, error) 
 	if !rxUUID.MatchString(rid) {
 		return m, ErrRestaurantNotFound
 	}
-//, c.label, i.name, c.availability, i.description, i.price, i.availability 		INNER JOIN item i ON c.id = i.category_id
+	//, c.label, i.name, c.availability, i.description, i.price, i.availability 		INNER JOIN item i ON c.id = i.category_id
 	query := `SELECT name FROM item WHERE restaurant_id = $1`
 	rows, err := s.db.QueryContext(ctx, query, rid)
 	fmt.Println("[GET MENU]:", err)
@@ -217,7 +222,7 @@ func (s *Service) GetMenuForFp(ctx context.Context, rid string) ([]Item, error) 
 		fmt.Println("[ROW ERROR]")
 		return nil, fmt.Errorf("could not iterate menu: %v", err)
 	}
-	o, err := s.GetMenuById(ctx,"477277084689432577")
+	o, err := s.GetMenuById(ctx, "477277084689432577")
 	fmt.Println(o)
 
 	return m, nil

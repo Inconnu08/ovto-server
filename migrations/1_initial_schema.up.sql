@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS users
 (
     id              SERIAL  NOT NULL PRIMARY KEY,
     email           VARCHAR NOT NULL UNIQUE,
-    fullname        VARCHAR(50) NOT NULL UNIQUE,
+    fullname        VARCHAR(150) NOT NULL,
     avatar          VARCHAR,
     address         VARCHAR(255),
     phone           VARCHAR,
@@ -53,6 +53,7 @@ CREATE TABLE IF NOT EXISTS restaurant
     title           VARCHAR(50) NOT NULL UNIQUE,
     owner_id        INT NOT NULL REFERENCES foodprovider,
     avatar          VARCHAR,
+    cover           VARCHAR,
     about           VARCHAR,
     location        VARCHAR NOT NULL,
     city            VARCHAR NOT NULL,
@@ -72,17 +73,53 @@ CREATE TABLE IF NOT EXISTS restaurant
 CREATE TABLE IF NOT EXISTS permission
 (
     id              INT,
-    restaurant_id   UUID REFERENCES restaurant,
-    role            INT NOT NULL,
+    restaurant_id   UUID,
     restaurant      VARCHAR NOT NULL,
+    role            INT NOT NULL,
 
     PRIMARY KEY (id, restaurant_id)
 );
 
 CREATE TABLE IF NOT EXISTS restaurant_gallery
 (
-    id              SERIAL  NOT NULL PRIMARY KEY,
+    id              SERIAL,
     restaurant_id   UUID NOT NULL REFERENCES restaurant,
     image           VARCHAR NOT NULL,
-    created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (id, restaurant_id)
+);
+
+CREATE TABLE IF NOT EXISTS category
+(
+    id              SERIAL NOT NULL PRIMARY KEY,
+    restaurant      UUID NOT NULL,
+    label           VARCHAR(25) NOT NULL,
+    availability    BOOLEAN NOT NULL DEFAULT true,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    UNIQUE (restaurant, label)
+);
+
+CREATE TABLE IF NOT EXISTS item
+(
+    id              SERIAL NOT NULL PRIMARY KEY,
+    restaurant_id   UUID NOT NULL REFERENCES restaurant,
+    category_id     SERIAL NOT NULL REFERENCES category,
+    name            VARCHAR(25) NOT NULL,
+    description     VARCHAR(255) NOT NULL,
+    price           DECIMAL(12,2) NOT NULL,
+    availability    BOOLEAN NOT NULL DEFAULT true,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    UNIQUE (restaurant_id, name)
+);
+
+CREATE TABLE IF NOT EXISTS item_gallery
+(
+    id              SERIAL,
+    item_id         INT NOT NULL REFERENCES item,
+    image           VARCHAR NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    PRIMARY KEY (id, item_id)
 );

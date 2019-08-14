@@ -9,12 +9,12 @@ import (
 
 type Item struct {
 	Id 				  string  `json:"id"`
-	Name              string  `json:"name,omitempty"`
-	Category          string  `json:"category,omitempty"`
-	CategoryAvailable string  `json:"category_available,omitempty"`
-	Description       string  `json:"description,omitempty"`
-	Price             float64 `json:"price,omitempty"`
-	Availability      bool    `json:"availability,omitempty"`
+	Name              string  `json:"name"`
+	Category          string  `json:"category"`
+	CategoryAvailable string  `json:"category_available"`
+	Description       string  `json:"description"`
+	Price             float64 `json:"price"`
+	Availability      bool    `json:"availability"`
 }
 
 type Category struct {
@@ -139,12 +139,13 @@ func (s *Service) GetCategoriesByRestaurant(ctx context.Context, rid string) ([]
 //	return nil
 //}
 
-func (s *Service) CreateItem(ctx context.Context, rid, cid, name, description string, price float64, available bool) error {
+func (s *Service) CreateItem(ctx context.Context, rid string, cid int64, name, description string, price float64, available bool) error {
 	uid, auth := ctx.Value(KeyAuthFoodProviderID).(int64)
 	if !auth {
 		return ErrUnauthenticated
 	}
 
+	fmt.Println("[CID]", cid)
 	if !rxUUID.MatchString(rid) {
 		return ErrRestaurantNotFound
 	}
@@ -157,12 +158,13 @@ func (s *Service) CreateItem(ctx context.Context, rid, cid, name, description st
 	}
 
 	if _, err := s.checkPermission(ctx, Manager, uid, rid); err != nil {
-		fmt.Println("Permission Failed!")
-		return ErrUnauthenticated
+		return err
 	}
 
-	query := "INSERT INTO item (restaurant_id , category_id, name, description, price, availability) VALUES ($1, $2, $3, $4, $5, $6)"
-	_, err := s.db.QueryContext(ctx, query, rid, cid, name, description, price, available)
+	var id string
+	query := "INSERT INTO item (restaurant_id, category_id, name, description, price, availability) VALUES ($1, $2, $3, $4, $5, $6) RETURNING id"
+	err := s.db.QueryRowContext(ctx, query, rid, cid, name, description, price, available).Scan(&id)
+	fmt.Println("[ID]: ", id)
 	//unique := isUniqueViolation(err)
 	//if !unique && err != nil {
 	//	return err
@@ -202,18 +204,37 @@ func (s *Service) GetMenuForFp(ctx context.Context, rid string) ([]Item, error) 
 	for rows.Next() {
 		fmt.Println("[ENTER LOOP]")
 		var i Item
-		if err = rows.Scan(&i.Id, &i.Category, &i.Name, &i.CategoryAvailable, &i.Description, &i.Price, &i.Availability); err != nil {
+		if err = rows.Scan(&i.Name); err != nil {
 			fmt.Println("[ITEM]", i)
 			return nil, fmt.Errorf("could not get item: %v", err)
 		}
 
-		fmt.Println(i)
+		fmt.Println("[ITEM]", i.Description)
 		m = append(m, i)
 	}
 
 	if err = rows.Err(); err != nil {
+		fmt.Println("[ROW ERROR]")
 		return nil, fmt.Errorf("could not iterate menu: %v", err)
 	}
+	o, err := s.GetMenuById(ctx,"477277084689432577")
+	fmt.Println(o)
+
+	return m, nil
+}
+
+func (s *Service) GetMenuById(ctx context.Context, id string) ([]Item, error) {
+	m := make([]Item, 0, 1)
+
+	_, auth := ctx.Value(KeyAuthFoodProviderID).(int64)
+	if !auth {
+		return m, ErrUnauthenticated
+	}
+
+	var d string
+	query := `SELECT description FROM item WHERE id = $1`
+	_ = s.db.QueryRowContext(ctx, query, id).Scan(&d)
+	fmt.Println("[GET MENU 0]:", d)
 
 	return m, nil
 }

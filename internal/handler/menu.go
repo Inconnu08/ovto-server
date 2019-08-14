@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 
 	"github.com/matryer/way"
@@ -16,7 +17,7 @@ type CategoryInput struct {
 
 type ItemInput struct {
 	Name         string  `json:"name"`
-	Category     string  `json:"category"`
+	Category     int64   `json:"category"`
 	Description  string  `json:"description"`
 	Price        float64 `json:"price"`
 	Availability bool    `json:"availability"`
@@ -77,10 +78,16 @@ func (h *handler) getCategoriesByRestaurant(w http.ResponseWriter, r *http.Reque
 
 func (h *handler) createItem(w http.ResponseWriter, r *http.Request) {
 	var in ItemInput
+	defer r.Body.Close()
+	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
+		http.Error(w, err.Error(), http.StatusBadRequest)
+		return
+	}
 
 	ctx := r.Context()
 	rID := way.Param(ctx, "restaurant_id")
 
+	fmt.Println(in.Category)
 	err := h.CreateItem(ctx, rID, in.Category, in.Name, in.Description, in.Price, in.Availability)
 	if err == service.ErrUnauthenticated {
 		http.Error(w, err.Error(), http.StatusUnauthorized)

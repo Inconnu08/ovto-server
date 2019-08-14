@@ -110,7 +110,7 @@ CREATE TABLE IF NOT EXISTS item
     category_id     SERIAL NOT NULL REFERENCES category,
     name            VARCHAR(25) NOT NULL,
     description     VARCHAR(255) NOT NULL,
-    price           DECIMAL(1,1) NOT NULL CHECK (price >= 0),
+    price           DECIMAL(12,2) NOT NULL CHECK (price > 0),
     availability    BOOLEAN NOT NULL DEFAULT true,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
 

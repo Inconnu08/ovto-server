@@ -104,6 +104,11 @@ func (h *handler) createItem(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err == service.ErrItemAlreadyExists {
+		http.Error(w, err.Error(), http.StatusConflict)
+		return
+	}
+
 	if err != nil {
 		respondErr(w, err)
 		return
@@ -122,7 +127,7 @@ func (h *handler) getMenuForFp(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err == service.ErrRestaurantNotFound {
+	if err == service.ErrRestaurantNotFound || err == service.ErrMenuNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}

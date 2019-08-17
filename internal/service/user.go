@@ -35,12 +35,16 @@ var (
 	ErrUserNotFound = errors.New("user not found")
 	// ErrUserNotFound denotes a not found user.
 	ErrRestaurantNotFound = errors.New("restaurant not found")
+	// ErrUserNotFound denotes a not found user.
+	ErrMenuNotFound = errors.New("restaurant menu is empty")
 	// ErrInvalidEmail denotes an invalid Email address.
 	ErrInvalidEmail = errors.New("invalid Email")
 	// ErrInvalidFullname denotes an invalid username.
 	ErrInvalidFullname = errors.New("invalid Fullname")
 	// ErrEmailTaken denotes an Email already taken.
 	ErrEmailTaken = errors.New("email taken")
+
+	ErrItemAlreadyExists = errors.New("item already exists")
 	// ErrTitleTaken denotes a restaurant with that title already exists.
 	ErrTitleTaken = errors.New("title taken")
 	// ErrUnauthenticated denotes no authenticated user in context.

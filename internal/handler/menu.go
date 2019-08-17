@@ -40,6 +40,11 @@ func (h *handler) createCategory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if err == service.ErrTitleTaken {
+		http.Error(w, err.Error(), http.StatusConflict)
+		return
+	}
+
 	if err == service.ErrRestaurantNotFound {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return

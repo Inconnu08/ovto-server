@@ -47,8 +47,8 @@ func (s *Service) CreateCategory(ctx context.Context, rid, name string, availabi
 
 	query := "INSERT INTO category(restaurant, label, availability) VALUES ($1, $2, $3)"
 	_, err = tx.ExecContext(ctx, query, rid, name, availability)
-	fk := isForeignKeyViolation(err)
-	if fk {
+	u := isUniqueViolation(err)
+	if u {
 		return ErrTitleTaken
 	}
 

@@ -119,12 +119,34 @@ CREATE TABLE IF NOT EXISTS item
 
 CREATE TABLE IF NOT EXISTS item_gallery
 (
-    id              SERIAL,
+    id              SERIAL NOT NULL PRIMARY KEY,
     item_id         INT NOT NULL REFERENCES item,
     image           VARCHAR NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     PRIMARY KEY (id, item_id)
+);
+
+CREATE TABLE IF NOT EXISTS orders
+(
+    id              SERIAL NOT NULL PRIMARY KEY,
+    cust_id         INT NOT NULL REFERENCES users,
+    restaurant_id   UUID NOT NULL REFERENCES restaurant,
+    status          INT NOT NULL,
+    total           DECIMAL(12,2) NOT NULL CHECK (price > 0),
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    INDEX(restaurant_id)
+);
+
+CREATE TABLE IF NOT EXISTS order_item
+(
+    order_id        INT NOT NULL REFERENCES orders,
+    item_id         INT NOT NULL REFERENCES item,
+    quantity        INT NOT NULL REFERENCES DEFAULT 1 CHECK (quantity > 0),
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+
+    PRIMARY KEY (order_id, item_id)
 );
 -- INSERT INTO users (id, email, fullname)
 -- VALUES (1, 'jon@example.org', 'jon snow'),

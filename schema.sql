@@ -133,7 +133,6 @@ CREATE TABLE IF NOT EXISTS orders
     cust_id         INT NOT NULL REFERENCES users,
     restaurant_id   UUID NOT NULL REFERENCES restaurant,
     status          INT NOT NULL,
-    total           DECIMAL(12,2) NOT NULL CHECK (price > 0),
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     INDEX(restaurant_id)

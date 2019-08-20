@@ -59,7 +59,7 @@ func TestCreateRestaurant(t *testing.T) {
 		log.Fatalf("failed to validate schema: %v\n", err)
 	}
 
-	s := New(db, codec, fpCodec, nil, url.URL{})
+	s := New(db, nil, codec, fpCodec, nil, url.URL{})
 
 	_ = s.CreateFoodProvider(ctx, "johndoe@gmail.com", "John Snow", "01867584576", "ilovegolang")
 	user, _ := s.FoodProviderLogin(ctx, "johndoe@gmail.com", "ilovegolang")

@@ -50,7 +50,7 @@ func TestUserLogin(t *testing.T) {
 		log.Fatalf("failed to validate schema: %v\n", err)
 	}
 
-	s := New(db, codec, fpCodec, nil, url.URL{})
+	s := New(db,nil, codec, fpCodec, nil, url.URL{})
 
 	for _, test := range tt {
 		t.Run(test.Label, func(t *testing.T) {
@@ -106,7 +106,7 @@ func TestLoginFoodProvider(t *testing.T) {
 		log.Fatalf("failed to validate schema: %v\n", err)
 	}
 
-	s := New(db, codec, fpCodec, nil, url.URL{})
+	s := New(db, nil, codec, fpCodec, nil, url.URL{})
 
 	_ = s.CreateFoodProvider(ctx, "johndoe@gmail.com", "Taufiq Rahman", "01767586798", "coolpass")
 

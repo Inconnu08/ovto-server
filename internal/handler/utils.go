@@ -3,6 +3,7 @@ package handler
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 )
@@ -22,4 +23,15 @@ func respond(w http.ResponseWriter, v interface{}, statusCode int) {
 func respondErr(w http.ResponseWriter, err error) {
 	log.Println(err)
 	http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+}
+
+func writeSSE(w io.Writer, v interface{}) {
+	b, err := json.Marshal(v)
+	if err != nil {
+		log.Printf("could not marshal response: %v\n", err)
+		fmt.Fprintf(w, "event: error\ndata: %v\n\n", err)
+		return
+	}
+
+	fmt.Fprintf(w, "data: %s\n\n", b)
 }

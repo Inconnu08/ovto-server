@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"github.com/matryer/vice/queues/nats"
 	"net/http"
 	"net/url"
 	"os"
@@ -70,7 +71,7 @@ func main() {
 	aCodec := branca.NewBranca(ambassadorTokenKey)
 	aCodec.SetTTL(uint32(service.TokenLifeSpan.Seconds()))
 
-	s := service.New(db, codec, fpCodec, aCodec, *origin)
+	s := service.New(db, nats.New(), codec, fpCodec, aCodec, *origin)
 	h := handler.New(s)
 
 	//go func() {

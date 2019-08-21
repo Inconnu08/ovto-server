@@ -19,8 +19,12 @@ require (
 	github.com/matoous/go-nanoid v0.0.0-20190515092250-e998f83de84d
 	github.com/matryer/vice v1.0.0
 	github.com/matryer/way v0.0.0-20180416093233-9632d0c407b0
+	github.com/nats-io/go-nats v1.7.2 // indirect
+	github.com/nats-io/go-nats-streaming v0.4.4 // indirect
+	github.com/nats-io/nkeys v0.1.0 // indirect
+	github.com/nats-io/nuid v1.0.1 // indirect
 	github.com/opencontainers/runc v0.1.1 // indirect
 	github.com/ory/dockertest v3.3.4+incompatible
 	github.com/sirupsen/logrus v1.4.2
-	golang.org/x/crypto v0.0.0-20190618222545-ea8f1a30c443
+	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 )

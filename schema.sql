@@ -119,7 +119,7 @@ CREATE TABLE IF NOT EXISTS item
 
 CREATE TABLE IF NOT EXISTS item_gallery
 (
-    id              SERIAL NOT NULL PRIMARY KEY,
+    id              SERIAL NOT NULL,
     item_id         INT NOT NULL REFERENCES item,
     image           VARCHAR NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
@@ -142,7 +142,7 @@ CREATE TABLE IF NOT EXISTS order_item
 (
     order_id        INT NOT NULL REFERENCES orders,
     item_id         INT NOT NULL REFERENCES item,
-    quantity        INT NOT NULL REFERENCES DEFAULT 1 CHECK (quantity > 0),
+    quantity        INT NOT NULL DEFAULT 1 CHECK (quantity > 0),
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     PRIMARY KEY (order_id, item_id)

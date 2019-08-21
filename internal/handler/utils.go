@@ -2,11 +2,14 @@ package handler
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 )
+
+var errStreamingUnsupported = errors.New("streaming unsupported")
 
 func respond(w http.ResponseWriter, v interface{}, statusCode int) {
 	b, err := json.Marshal(v)

@@ -10,6 +10,7 @@ import (
 
 type createUserInput struct {
 	Fullname string `json:"fullname"`
+	Phone 	 string `json:"phone"`
 	Email    string `json:"email"`
 	Password string `json:"password"`
 }
@@ -33,7 +34,7 @@ func (h *handler) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.CreateUser(r.Context(), in.Email, in.Fullname, in.Password)
+	err := h.CreateUser(r.Context(), in.Email, in.Phone, in.Fullname, in.Password)
 	if err == service.ErrInvalidEmail || err == service.ErrInvalidFullname {
 		http.Error(w, err.Error(), http.StatusUnprocessableEntity)
 		return

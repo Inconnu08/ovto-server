@@ -82,7 +82,7 @@ type UserProfile struct {
 }
 
 // CreateUser with the given Email and name.
-func (s *Service) CreateUser(ctx context.Context, email, fullname, password string) error {
+func (s *Service) CreateUser(ctx context.Context, email, phone, fullname, password string) error {
 	email = strings.TrimSpace(email)
 	if !rxEmail.MatchString(email) {
 		return ErrInvalidEmail
@@ -93,6 +93,11 @@ func (s *Service) CreateUser(ctx context.Context, email, fullname, password stri
 		return ErrInvalidFullname
 	}
 
+	phone = strings.TrimSpace(phone)
+	if !rxPhone.MatchString(phone) {
+		return ErrInvalidPhone
+	}
+
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
@@ -100,8 +105,8 @@ func (s *Service) CreateUser(ctx context.Context, email, fullname, password stri
 	defer tx.Rollback()
 
 	var id int
-	query := "INSERT INTO users (Email, Fullname) VALUES ($1, $2) RETURNING id"
-	err = tx.QueryRowContext(ctx, query, email, fullname).Scan(&id)
+	query := "INSERT INTO users (Email, Fullname, Phone) VALUES ($1, $2, $3) RETURNING id"
+	err = tx.QueryRowContext(ctx, query, email, fullname, phone).Scan(&id)
 	unique := isUniqueViolation(err)
 	if !unique && err != nil {
 		return err

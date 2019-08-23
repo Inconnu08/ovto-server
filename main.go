@@ -1,12 +1,15 @@
 package main
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
-	"github.com/matryer/vice/queues/nats"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"os/signal"
+	"strconv"
 	"time"
 
 	"github.com/hako/branca"
@@ -18,9 +21,15 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		log.Fatalln(err)
+	}
+}
+
+func run() error {
 	var (
-		port         = env("PORT", "3000")
-		originStr    = env("ORIGIN", "http://localhost:"+port)
+		port, _      = strconv.Atoi(env("PORT", "3000"))
+		originStr    = env("ORIGIN", fmt.Sprintf("http://localhost:%d", port))
 		dbURL        = env("DATABASE_URL", "postgresql://root@127.0.0.1:26257/ovto?sslmode=disable")
 		userTokenKey = env("TOKEN_KEY", "supersecretkeyyoushouldnotcommit")
 		fpTokenKey = env("TOKEN_KEY", "supersecretkeyyoushouldcommitokk")
@@ -38,13 +47,13 @@ func main() {
 	origin, err := url.Parse(originStr)
 	if err != nil || !origin.IsAbs() {
 		log.WithError(err).Fatal("invalid origin url:")
-		return
+		return err
 	}
 
 	db, err := sql.Open("pgx", dbURL)
 	if err != nil {
 		log.Fatalf("\nCould not open db connection: %v\n")
-		return
+		return err
 	}
 
 	//if err := service.ValidateSchema(db); err != nil {
@@ -59,7 +68,7 @@ func main() {
 
 	if err = db.Ping(); err != nil {
 		log.Fatalf("could not ping to db %v\n", err)
-		return
+		return err
 	}
 
 	codec := branca.NewBranca(userTokenKey)
@@ -71,25 +80,44 @@ func main() {
 	aCodec := branca.NewBranca(ambassadorTokenKey)
 	aCodec.SetTTL(uint32(service.TokenLifeSpan.Seconds()))
 
-	s := service.New(db, nats.New(), codec, fpCodec, aCodec, *origin)
-	h := handler.New(s)
-
-	//go func() {
-	//	cmd := exec.Command("cockroach", "start", "--insecure")
-	//	stdout, err := cmd.Output()
-	//	if err != nil {
-	//		println(err.Error())
-	//		return
-	//	}
-	//
-	//	print(string(stdout))
-	//}()
-
-	addr := fmt.Sprintf(":%s", port)
-	log.Infof("accepting connections on port: %s\n", port)
-	if err := http.ListenAndServe(addr, h); err != nil {
-		log.Fatalf("could not start server: %v\n", err)
+	s := service.New(db, codec, fpCodec, aCodec, *origin)
+	server := http.Server{
+		Addr:              fmt.Sprintf(":%d", port),
+		Handler:           handler.New(s),
+		ReadHeaderTimeout: time.Second * 5,
+		ReadTimeout:       time.Second * 15,
 	}
+
+	errs := make(chan error, 2)
+
+	go func() {
+		quit := make(chan os.Signal, 1)
+		signal.Notify(quit, os.Interrupt, os.Kill)
+
+		<-quit
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+		if err := server.Shutdown(ctx); err != nil {
+			errs <- fmt.Errorf("could not shutdown server: %v", err)
+			return
+		}
+
+		errs <- ctx.Err()
+	}()
+
+	go func() {
+		log.Printf("accepting connections on port %d\n", port)
+		log.Printf("starting server at %s\n", origin)
+		if err = server.ListenAndServe(); err != http.ErrServerClosed {
+			errs <- fmt.Errorf("could not listen and serve: %v", err)
+			return
+		}
+
+		errs <- nil
+	}()
+
+	return <-errs
 }
 
 func env(key, fallbackValue string) string {
@@ -109,3 +137,5 @@ func env(key, fallbackValue string) string {
 
 // curl -i -X GET \
 // "https://graph.facebook.com/v3.3/me?fields=id%2Cname%2Cemail%2Cbirthday%2Cpicture&access_token=EAAGKzLH7udYBAIKZA0dfE9eg0dbOVxRtkH7u1oZAIWfxy1t0pwrl7thGrpWFnmzb4zGBAN7kto5AHVu3VhYJWATHcse3zJ2DVRgIVW60SoEyRZCpFRz7EAAxKbDOHLosUCSh6EwUrAf23UNMQKqOINZCB3RV5elVcQxxqMoAcxPE9c8GBWJZB4rSDELQ3s0NSn4vJQcQ1MgZDZD"
+
+// curl -H "Accept: text/event-stream" -H "Authorization: Bearer ATj73KIC1peKgoQ2FZKXFLVPbmo3FKWxyjulNQghOPGQAGuBcggICDez9pY44hl0MqBRxzKHe7zh5bvLuzg2B" http://localhost:3000/api/restaurants/00e1630a-8c56-47f8-8dbc-56e17953941c/orders

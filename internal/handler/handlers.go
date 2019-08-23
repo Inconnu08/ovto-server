@@ -30,6 +30,7 @@ func New(s *service.Service) http.Handler {
 	foodProviderApi.HandleFunc("POST", "/login", h.foodProviderLogin)
 	foodProviderApi.HandleFunc("GET", "/auth_fp", h.authFp)
 	foodProviderApi.HandleFunc("GET", "/restaurants", h.getRestaurants)
+	foodProviderApi.HandleFunc("POST", "/restaurants/:restaurant_id/role", h.createRole)
 
 	restaurantApi := way.NewRouter()
 	restaurantApi.HandleFunc("POST", "/", h.createRestaurant)

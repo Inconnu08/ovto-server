@@ -55,7 +55,7 @@ func (s *Service) CreateFoodProvider(ctx context.Context, email, fullname, phone
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	hPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -116,7 +116,7 @@ func (s *Service) CreateRole(ctx context.Context, rid, fullname, phone, password
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	hPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {

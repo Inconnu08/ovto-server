@@ -57,7 +57,7 @@ func (h *handler) createAmbassador(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(http.StatusNoContent)
 }
 
-func (h *handler) addBkashNumber(w http.ResponseWriter, r *http.Request) {
+func (h *handler) addBKashNumber(w http.ResponseWriter, r *http.Request) {
 	var in bkashInput
 
 	defer r.Body.Close()
@@ -66,7 +66,7 @@ func (h *handler) addBkashNumber(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err := h.AddBkashNumber(r.Context(), in.Password, in.Bkash)
+	err := h.AddBKashNumber(r.Context(), in.Password, in.Bkash)
 	if err == service.ErrUnauthenticated || err == service.ErrInvalidPassword{
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

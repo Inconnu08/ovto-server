@@ -43,7 +43,7 @@ func (s *Service) CreateCategory(ctx context.Context, rid, name string, availabi
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	query := "INSERT INTO category(restaurant, label, availability) VALUES ($1, $2, $3)"
 	_, err = tx.ExecContext(ctx, query, rid, name, availability)

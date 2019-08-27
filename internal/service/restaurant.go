@@ -54,7 +54,7 @@ func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, loc
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	//query, args, err := buildQuery(`
 	//	INSERT INTO restaurant (title, owner_id, about, location, city, area, country, phone, opening_time, closing_time)
@@ -187,7 +187,7 @@ func (s *Service) CreateRestaurantByAmbassador(ctx context.Context, title, about
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	query, args, err := buildQuery(`
 		INSERT INTO restaurant (title, owner_id, about, location, city, area, country, phone, opening_time, closing_time
@@ -264,7 +264,7 @@ func (s *Service) UpdateRestaurant(ctx context.Context, id, about, phone, locati
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	query, args, err := buildQuery(`
 		UPDATE restaurant SET 
@@ -329,7 +329,7 @@ func (s *Service) UpdateRestaurantStatus(ctx context.Context, id string, closed 
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	query := "UPDATE INTO restaurant SET closed = $1 WHERE id = $2"
 	_, err = tx.ExecContext(ctx, query, closed, id)

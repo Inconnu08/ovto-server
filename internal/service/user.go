@@ -102,7 +102,7 @@ func (s *Service) CreateUser(ctx context.Context, email, phone, fullname, passwo
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	var id int
 	query := "INSERT INTO users (Email, Fullname, Phone) VALUES ($1, $2, $3) RETURNING id"
@@ -149,7 +149,7 @@ func (s *Service) UpdateUser(ctx context.Context, address, phone string) error {
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	if address != "" {
 		query := "UPDATE users SET address = $1 WHERE id = $2"

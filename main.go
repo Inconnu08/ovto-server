@@ -138,4 +138,4 @@ func env(key, fallbackValue string) string {
 // curl -i -X GET \
 // "https://graph.facebook.com/v3.3/me?fields=id%2Cname%2Cemail%2Cbirthday%2Cpicture&access_token=EAAGKzLH7udYBAIKZA0dfE9eg0dbOVxRtkH7u1oZAIWfxy1t0pwrl7thGrpWFnmzb4zGBAN7kto5AHVu3VhYJWATHcse3zJ2DVRgIVW60SoEyRZCpFRz7EAAxKbDOHLosUCSh6EwUrAf23UNMQKqOINZCB3RV5elVcQxxqMoAcxPE9c8GBWJZB4rSDELQ3s0NSn4vJQcQ1MgZDZD"
 
-// curl -H "Accept: text/event-stream" -H "Authorization: Bearer ATj73KIC1peKgoQ2FZKXFLVPbmo3FKWxyjulNQghOPGQAGuBcggICDez9pY44hl0MqBRxzKHe7zh5bvLuzg2B" http://localhost:3000/api/restaurants/00e1630a-8c56-47f8-8dbc-56e17953941c/orders
+// curl -H "Accept: text/event-stream" -H "Authorization: Bearer ATj7V7RiWgP8eX5WEd0gKdzfE6QTuPxoLUz0RbVYg55wyfv5gF708C4HXw49rTyJD1BI2e4JJ1Nx1876JM4qf" http://localhost:3000/api/restaurants/00e1630a-8c56-47f8-8dbc-56e17953941c/orders

@@ -41,21 +41,22 @@ func (s *Service) CreateAmbassador(ctx context.Context, email, fullname, phone, 
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	hPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
 		return err
 	}
 
-RETRY:
+	RETRY:
 	var retry int
-	query := "INSERT INTO Ambassador (email, fullname, phone, fb, city, area, address, password, referral_code)" +
-		" VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9) RETURNING id"
+	query := `
+		INSERT INTO Ambassador (email, fullname, phone, fb, city, area, address, password, referral_code)
+ 		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+  		RETURNING id`
 	_, err = tx.ExecContext(ctx, query, email, fullname, phone, fb, city, area, address, hPassword, GetRandomName(retry))
 	unique := isUniqueViolation(err)
 	if unique {
-		fmt.Println("UNIQUE CONTRAINT:", err)
 		if strings.Contains(err.Error(), "email") {
 			return ErrEmailTaken
 		}
@@ -73,12 +74,13 @@ RETRY:
 	}
 
 	if err != nil {
-		return fmt.Errorf("could not create food provider: %v", err)
+		return fmt.Errorf("could not create ambassador: %v", err)
 	}
 
 	return nil
 }
 
+// UpdateAmbassador updates ambassador's profile.
 func (s *Service) UpdateAmbassador(ctx context.Context, fb, city, area, address string) error {
 	uid, ok := ctx.Value(KeyAuthAmbassadorID).(int64)
 	if !ok {
@@ -94,7 +96,7 @@ func (s *Service) UpdateAmbassador(ctx context.Context, fb, city, area, address 
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	if fb != "" {
 		query := "UPDATE Ambassador SET fb = $1 WHERE id = $2"
@@ -120,6 +122,7 @@ func (s *Service) UpdateAmbassador(ctx context.Context, fb, city, area, address 
 	return nil
 }
 
+// GetAmbassadorById queries an Ambassador by their ID.
 func (s *Service) GetAmbassadorById(ctx context.Context, id int64) (Ambassador, error) {
 	var u Ambassador
 	//var avatar sql.NullString
@@ -138,6 +141,7 @@ func (s *Service) GetAmbassadorById(ctx context.Context, id int64) (Ambassador, 
 	return u, nil
 }
 
+// GetAmbassadorByName queries an Ambassador by their name.
 func (s *Service) GetAmbassadorByName(ctx context.Context, name string) (Ambassador, error) {
 	var u Ambassador
 	//var avatar sql.NullString
@@ -156,7 +160,7 @@ func (s *Service) GetAmbassadorByName(ctx context.Context, name string) (Ambassa
 	return u, nil
 }
 
-// AddPaymentMethod is a generic function for adding any sort of payment method for example bkash, rocket etc.
+// AddPaymentMethod is a generic function for adding any sort of payment method for example bKash, rocket etc.
 func (s *Service) AddPaymentMethod(ctx context.Context, password, method, number, remove string) error {
 	uid, ok := ctx.Value(KeyAuthAmbassadorID).(int64)
 	if !ok {
@@ -183,7 +187,7 @@ func (s *Service) AddPaymentMethod(ctx context.Context, password, method, number
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	query = `UPDATE Ambassador SET $1 = $2, $3 = NULL WHERE id = $4`
 	_, err = tx.ExecContext(ctx, query, method, number, remove, uid)
@@ -195,8 +199,8 @@ func (s *Service) AddPaymentMethod(ctx context.Context, password, method, number
 	return nil
 }
 
-func (s *Service) AddBkashNumber(ctx context.Context, password, bkash string) error {
-	return s.AddPaymentMethod(ctx, password, "bkash", bkash, "rocket")
+func (s *Service) AddBKashNumber(ctx context.Context, password, bKash string) error {
+	return s.AddPaymentMethod(ctx, password, "bkash", bKash, "rocket")
 }
 
 func (s *Service) AddRocketNumber(ctx context.Context, password, rocket string) error {

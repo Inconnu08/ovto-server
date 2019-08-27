@@ -7,12 +7,13 @@ import (
 )
 
 type Order struct {
-	Id     int64
-	CId    int64
-	RId    string
-	Status int64
-	Items  map[string]int64
+	Id     int64            `json:"id"`
+	CId    int64            `json:"cid"`
+	RId    string           `json:"rid"`
+	Status int64            `json:"status"`
+	Items  map[string]int64 `json:"items"`
 }
+
 type orderClient struct {
 	orders       chan Order
 	restaurantID string
@@ -37,7 +38,7 @@ func (s *Service) CreateOrder(ctx context.Context, rid string, cid, status int64
 	if err != nil {
 		return fmt.Errorf("could not begin tx: %v", err)
 	}
-	defer tx.Rollback()
+	defer func() { _ = tx.Rollback() }()
 
 	var orderId int64
 	query := "INSERT INTO orders(cust_id, restaurant_id, status) VALUES ($1, $2, $3) RETURNING id"

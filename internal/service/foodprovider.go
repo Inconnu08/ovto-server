@@ -152,7 +152,7 @@ func (s *Service) CreateRole(ctx context.Context, rid, fullname, phone, password
 	return nil
 }
 
-// UpdateDisplayPicture of the authenticated user returning the new avatar URL.
+// UpdateUserDisplayPicture of the authenticated user returning the new avatar URL.
 func (s *Service) UpdateFPDisplayPicture(ctx context.Context, r io.Reader) (string, error) {
 	uid, ok := ctx.Value(KeyAuthUserID).(int64)
 	if !ok {

@@ -425,11 +425,11 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 	return dpURL.String(), nil
 }
 
-// UpdatePicture is a utility function returning the new image URL.
+// UpdatePicture is a utility function returning the new uploaded image as URL.
 func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, rid, dir, query, urlPath string, uid int64, h, w int) (string, error) {
 	if rid != "" {
 		if !rxUUID.MatchString(rid) {
-			return "", ErrInvalidRestaurantId
+			return "", ErrInvalidId
 		}
 	}
 

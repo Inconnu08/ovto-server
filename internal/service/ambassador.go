@@ -4,8 +4,17 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"golang.org/x/crypto/bcrypt"
+	"github.com/disintegration/imaging"
+	gonanoid "github.com/matoous/go-nanoid"
+	"image"
+	"image/jpeg"
+	"image/png"
+	"io"
+	"os"
+	"path"
 	"strings"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 type Ambassador struct {
@@ -48,7 +57,7 @@ func (s *Service) CreateAmbassador(ctx context.Context, email, fullname, phone, 
 		return err
 	}
 
-	RETRY:
+RETRY:
 	var retry int
 	query := `
 		INSERT INTO Ambassador (email, fullname, phone, fb, city, area, address, password, referral_code)
@@ -199,14 +208,17 @@ func (s *Service) AddPaymentMethod(ctx context.Context, password, method, number
 	return nil
 }
 
+// Adds Bkash number for receiving payments.
 func (s *Service) AddBKashNumber(ctx context.Context, password, bKash string) error {
 	return s.AddPaymentMethod(ctx, password, "bkash", bKash, "rocket")
 }
 
+// Adds Rocket number for receiving payments
 func (s *Service) AddRocketNumber(ctx context.Context, password, rocket string) error {
 	return s.AddPaymentMethod(ctx, password, "rocket", rocket, "bkash")
 }
 
+// ChangeAmbassadorPassword updates the ambassador's password.
 func (s *Service) ChangeAmbassadorPassword(ctx context.Context, oldPassword, newPassword string) error {
 	uid, ok := ctx.Value(KeyAuthAmbassadorID).(int64)
 	if !ok {
@@ -239,4 +251,71 @@ func (s *Service) ChangeAmbassadorPassword(ctx context.Context, oldPassword, new
 	}
 
 	return nil
+}
+
+// UpdateAmbassadorDisplayPicture of the authenticated user returning the new avatar URL.
+func (s *Service) UpdateAmbassadorDisplayPicture(ctx context.Context, r io.Reader) (string, error) {
+	uid, ok := ctx.Value(KeyAuthUserID).(int64)
+	if !ok {
+		return "", ErrUnauthenticated
+	}
+
+	r = io.LimitReader(r, MaxImageBytes)
+	img, format, err := image.Decode(r)
+	if err == image.ErrFormat {
+		return "", ErrUnsupportedImageFormat
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("could not read dp: %v", err)
+	}
+
+	if format != "png" && format != "jpeg" {
+		return "", ErrUnsupportedImageFormat
+	}
+
+	dp, err := gonanoid.Nanoid()
+	if err != nil {
+		return "", fmt.Errorf("could not generate dp filename: %v", err)
+	}
+
+	if format == "png" {
+		dp += ".png"
+	} else {
+		dp += ".jpg"
+	}
+
+	displayPicturePath := path.Join(userDpDir, dp)
+	f, err := os.Create(displayPicturePath)
+	if err != nil {
+		return "", fmt.Errorf("could not create dp file: %v", err)
+	}
+
+	defer f.Close()
+	img = imaging.Fill(img, 400, 400, imaging.Center, imaging.CatmullRom)
+	if format == "png" {
+		err = png.Encode(f, img)
+	} else {
+		err = jpeg.Encode(f, img, nil)
+	}
+	if err != nil {
+		return "", fmt.Errorf("could not write dp to disk: %v", err)
+	}
+
+	var oldDp sql.NullString
+	if err = s.db.QueryRowContext(ctx, `
+		UPDATE users SET avatar = $1 WHERE id = $2
+		RETURNING (SELECT avatar FROM users WHERE id = $2) AS old_dp`, dp, uid).
+		Scan(&oldDp); err != nil {
+		defer os.Remove(displayPicturePath)
+		return "", fmt.Errorf("could not update dp: %v", err)
+	}
+
+	if oldDp.Valid {
+		defer os.Remove(path.Join(userDpDir, oldDp.String))
+	}
+	dpURL := s.origin
+	dpURL.Path = "/img/ambassador/dp/" + dp
+
+	return dpURL.String(), nil
 }

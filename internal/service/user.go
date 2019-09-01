@@ -49,6 +49,8 @@ var (
 	ErrTitleTaken = errors.New("title taken")
 	// ErrUnauthenticated denotes no authenticated user in context.
 	ErrInvalidRestaurantId = errors.New("invalid restaurant ID")
+	// ErrInvalidId denotes an invalid ID.
+	ErrInvalidId = errors.New("invalid ID")
 	// ErrInvalidPrice denotes price is not a valid positive real number.
 	ErrInvalidPrice = errors.New("invalid price")
 	// ErrForbiddenFollow denotes a forbidden follow. Like following yourself.
@@ -194,8 +196,8 @@ func (s *Service) DeleteUser(ctx context.Context) error {
 	return nil
 }
 
-// UpdateDisplayPicture of the authenticated user returning the new avatar URL.
-func (s *Service) UpdateDisplayPicture(ctx context.Context, r io.Reader) (string, error) {
+// UpdateUserDisplayPicture of the authenticated user returning the new avatar URL.
+func (s *Service) UpdateUserDisplayPicture(ctx context.Context, r io.Reader) (string, error) {
 	uid, ok := ctx.Value(KeyAuthUserID).(int64)
 	if !ok {
 		return "", ErrUnauthenticated

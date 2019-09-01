@@ -30,12 +30,14 @@ CREATE TABLE IF NOT EXISTS foodprovider
     fullname        VARCHAR(50) NOT NULL,
     phone           VARCHAR NOT NULL UNIQUE,
     password        VARCHAR NOT NULL,
+    avatar          VARCHAR,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE IF NOT EXISTS ambassador
 (
     id              SERIAL  NOT NULL PRIMARY KEY,
+    avatar          VARCHAR,
     email           VARCHAR NOT NULL UNIQUE,
     fullname        VARCHAR(50) NOT NULL,
     phone           VARCHAR NOT NULL UNIQUE,
@@ -135,7 +137,7 @@ CREATE TABLE IF NOT EXISTS orders
     status          INT NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
 
-    INDEX(restaurant_id)
+    INDEX (restaurant_id)
 );
 
 CREATE TABLE IF NOT EXISTS order_item

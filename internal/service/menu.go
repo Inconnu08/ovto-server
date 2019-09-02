@@ -4,6 +4,14 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/disintegration/imaging"
+	gonanoid "github.com/matoous/go-nanoid"
+	"image"
+	"image/jpeg"
+	"image/png"
+	"io"
+	"os"
+	"path"
 	"strings"
 )
 
@@ -171,6 +179,87 @@ func (s *Service) CreateItem(ctx context.Context, rid string, cid int64, name, d
 	}
 
 	return nil
+}
+
+// UpdateItemPicture of the authenticated restaurant returning the new avatar URL.
+func (s *Service) UpdateItemPicture(ctx context.Context, r io.Reader, rid, iid string, slot int) (string, error) {
+	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
+	if !ok {
+		return "", ErrUnauthenticated
+	}
+
+	if !rxUUID.MatchString(rid) {
+		return "", ErrInvalidRestaurantId
+	}
+
+	if _, err := s.checkPermission(ctx, Manager, uid, rid); err != nil {
+		fmt.Println("Permission Failed!")
+		return "", ErrUnauthenticated
+	}
+
+	r = io.LimitReader(r, MaxImageBytes)
+	img, format, err := image.Decode(r)
+	if err == image.ErrFormat {
+		return "", ErrUnsupportedImageFormat
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("could not read dp: %v", err)
+	}
+
+	if format != "png" && format != "jpeg" {
+		return "", ErrUnsupportedImageFormat
+	}
+
+	dp, err := gonanoid.Nanoid()
+	if err != nil {
+		return "", fmt.Errorf("could not generate dp filename: %v", err)
+	}
+
+	if format == "png" {
+		dp += ".png"
+	} else {
+		dp += ".jpg"
+	}
+
+	displayPicturePath := path.Join(restaurantDir, rid)
+	if _, err := os.Stat(displayPicturePath); os.IsNotExist(err) {
+		err = os.Mkdir(displayPicturePath, os.ModeDir)
+		return "", fmt.Errorf("failed to create path for image: %v", err)
+	}
+	displayPicturePath = path.Join(displayPicturePath, dp)
+	f, err := os.Create(displayPicturePath)
+	if err != nil {
+		return "", fmt.Errorf("could not create dp file: %v", err)
+	}
+	defer f.Close()
+
+	img = imaging.Fill(img, 400, 400, imaging.Center, imaging.CatmullRom)
+	if format == "png" {
+		err = png.Encode(f, img)
+	} else {
+		err = jpeg.Encode(f, img, nil)
+	}
+	if err != nil {
+		return "", fmt.Errorf("could not write dp to disk: %v", err)
+	}
+
+	var oldDp sql.NullString
+	if err = s.db.QueryRowContext(ctx, `
+		UPDATE restaurant SET avatar = $1 WHERE id = $2
+		RETURNING (SELECT avatar FROM restaurant WHERE id = $2) AS old_dp`, dp, rid).
+		Scan(&oldDp); err != nil {
+		defer os.Remove(displayPicturePath)
+		return "", fmt.Errorf("could not update dp: %v", err)
+	}
+
+	if oldDp.Valid {
+		defer os.Remove(path.Join(restaurantDir, rid, oldDp.String))
+	}
+	dpURL := s.origin
+	dpURL.Path = "/img/restaurant/" + rid + "/" + dp
+
+	return dpURL.String(), nil
 }
 
 func (s *Service) GetMenuForFp(ctx context.Context, rid string) (*[]Item, error) {

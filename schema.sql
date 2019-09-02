@@ -123,7 +123,9 @@ CREATE TABLE IF NOT EXISTS item_gallery
 (
     id              SERIAL NOT NULL,
     item_id         INT NOT NULL REFERENCES item,
-    image           VARCHAR NOT NULL,
+    image1          VARCHAR NOT NULL,
+    image2          VARCHAR NOT NULL,
+    image3          VARCHAR NOT NULL,
     created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
 
     PRIMARY KEY (id, item_id)

@@ -16,6 +16,7 @@ import (
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/sirupsen/logrus"
 
+	"ovto/internal/fixtures"
 	"ovto/internal/handler"
 	"ovto/internal/service"
 )
@@ -81,6 +82,9 @@ func run() error {
 	aCodec.SetTTL(uint32(service.TokenLifeSpan.Seconds()))
 
 	s := service.New(db, codec, fpCodec, aCodec, *origin)
+
+	fixtures.PopulateFoodProvider(s)
+
 	server := http.Server{
 		Addr:              fmt.Sprintf(":%d", port),
 		Handler:           handler.New(s),

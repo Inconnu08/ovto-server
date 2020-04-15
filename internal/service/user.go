@@ -25,7 +25,7 @@ const MaxImageBytes = 5 << 20 // 5MB
 var (
 	rxEmail    = regexp.MustCompile(`^[^\s@]+@[^\s@]+\.[^\s@]+$`)
 	rxFullname = regexp.MustCompile(`^[a-zA-Z ]{0,20}$`)
-	rxPhone    = regexp.MustCompile(`(^([+]{1}[8]{2}|0088)?(01){1}[5-9]{1}\d{8})$`)
+	rxPhone    = regexp.MustCompile(`(^([+]{1}[8]{2}|0088)?(01){1}[3-9]{1}\d{8})$`)
 	rxUUID     = regexp.MustCompile("^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$")
 
 	userDpDir     = path.Join("web", "static", "img", "user", "dp")

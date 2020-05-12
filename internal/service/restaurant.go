@@ -24,6 +24,20 @@ type Restaurant struct {
 	Rating float64 `json:"rating, omitempty"`
 }
 
+type RestaurantDetails struct {
+	Id       string  `json:"id"`
+	Title    string  `json:"title"`
+	OwnerId  string  `json:"about, omitempty"`
+	Avatar   string  `json:"avatar, omitempty"`
+	Cover    string  `json:"cover, omitempty"`
+	About    string  `json:"about, omitempty"`
+	Location string  `json:"location, omitempty"`
+	City     string  `json:"city, omitempty"`
+	Area     string  `json:"area, omitempty"`
+	Role     string  `json:"role, omitempty"`
+	Rating   float64 `json:"rating, omitempty"`
+}
+
 func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime string) error {
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	println("Finally:", uid)
@@ -163,6 +177,29 @@ func (s *Service) GetRestaurantsByFp(ctx context.Context) ([]Restaurant, error) 
 	}
 
 	return uu, nil
+}
+
+func (s *Service) GetRestaurantByIdForFp(ctx context.Context, id string) (Restaurant, error) {
+	_, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
+	var r Restaurant
+	if !ok {
+		return r, ErrUnauthenticated
+	}
+	if !rxUUID.MatchString(id) {
+		return r, ErrInvalidRestaurantId
+	}
+
+	query := "SELECT * FROM restaurant WHERE id = $1"
+	err := s.db.QueryRowContext(ctx, query, id).Scan(&r.Id, &r.Title, &r.o, &r.About, &r.Rating)
+	if err == sql.ErrNoRows {
+		return r, ErrRestaurantNotFound
+	}
+
+	if err != nil {
+		return r, fmt.Errorf("could not query restaurant: %v", err)
+	}
+
+	return r, nil
 }
 
 func (s *Service) CreateRestaurantByAmbassador(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime, referral string) error {
@@ -581,7 +618,7 @@ func (s *Service) UpdateRestaurantGallery(ctx context.Context, r io.Reader, rid 
 		return "", fmt.Errorf("could not write imageName to disk: %v", err)
 	}
 
-	if _, err = s.db.QueryContext(ctx, `INSERT INTO restaurant_gallery(restaurant_id, image) VALUES ($1, $2)`, rid, imageName) ; err != nil {
+	if _, err = s.db.QueryContext(ctx, `INSERT INTO restaurant_gallery(restaurant_id, image) VALUES ($1, $2)`, rid, imageName); err != nil {
 		return "", fmt.Errorf("could not update imageName: %v", err)
 	}
 

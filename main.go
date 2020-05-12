@@ -33,7 +33,7 @@ func run() error {
 		originStr    = env("ORIGIN", fmt.Sprintf("http://localhost:%d", port))
 		dbURL        = env("DATABASE_URL", "postgresql://root@127.0.0.1:26257/ovto?sslmode=disable")
 		userTokenKey = env("TOKEN_KEY", "supersecretkeyyoushouldnotcommit")
-		fpTokenKey = env("TOKEN_KEY", "supersecretkeyyoushouldcommitokk")
+		fpTokenKey = env("TOKEN_KEY", "supersecretkeyyoushouldcommitook")
 		ambassadorTokenKey = env("TOKEN_KEY", "supersecretkeyyoushouldcommit111")
 	)
 

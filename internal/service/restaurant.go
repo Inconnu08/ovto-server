@@ -148,13 +148,13 @@ func (s *Service) GetRestaurantsByFp(ctx context.Context) ([]Restaurant, error) 
 	uu := make([]Restaurant, 0, 1)
 	for rows.Next() {
 		var r Restaurant
-		var rl int
-		if err = rows.Scan(&r.Id, &r.Title, &rl); err != nil {
+		//var rl int
+		if err = rows.Scan(&r.Id, &r.Title, &r.About, &r.Rating); err != nil {
 			fmt.Println(r)
 			return nil, fmt.Errorf("could not get title: %v", err)
 		}
-		r.Role = getRole(rl)
-		fmt.Println(r)
+		//r.Role = getRole(rl)
+		//fmt.Println(r)
 		uu = append(uu, r)
 	}
 

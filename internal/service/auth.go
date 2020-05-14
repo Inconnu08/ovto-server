@@ -47,7 +47,7 @@ type FPLoginOutput struct {
 	Token       string              `json:"token"`
 	ExpiresAt   time.Time           `json:"expiresAt"`
 	AuthUser    FoodProviderProfile `json:"authUser"`
-	Restaurants *[]Restaurant        `json:"restaurants, omitempty"`
+	Restaurants *[]RestaurantDetails        `json:"restaurants, omitempty"`
 }
 
 type GoogleAuthOutput struct {
@@ -256,23 +256,30 @@ func (s *Service) FoodProviderLogin(ctx context.Context, phone string, password 
 	}
 
 	// TODO
-	query = "SELECT restaurant_id, role, restaurant FROM permission WHERE id = $1"
+	query = "SELECT restaurant_id, role FROM permission WHERE id = $1"
 	rows, err := s.db.QueryContext(ctx, query, &out.AuthUser.ID)
 	fmt.Println(err)
 	if err != sql.ErrNoRows {
 		defer rows.Close()
-		restaurantList := make([]Restaurant, 0)
+		restaurantList := make([]RestaurantDetails, 0)
 		for rows.Next() {
-			var r Restaurant
+			var r RestaurantDetails
 			var rl int
-			if err = rows.Scan(&r.Id, &rl, &r.Title); err != nil {
+			if err = rows.Scan(&r.Id, &rl); err != nil {
 				fmt.Println(r)
 				return out, fmt.Errorf("could not iterate properly: %v", err)
 			}
-			fmt.Println(r)
+
 			fmt.Println("[ROLE]:", rl, Admin)
-			r.Role = getRole(rl)
-			restaurantList = append(restaurantList, r)
+
+			r, err = s.getRestaurantByIdForFp(ctx, r.Id)
+			fmt.Println(err)
+			if err == nil {
+				fmt.Println("NO ERR")
+				//fmt.Errorf("could not get restaurant details: %v", err)
+				r.Role = getRole(rl)
+				restaurantList = append(restaurantList, r)
+			}
 		}
 
 		if err = rows.Err(); err != nil {

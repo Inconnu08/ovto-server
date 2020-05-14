@@ -25,17 +25,26 @@ type Restaurant struct {
 }
 
 type RestaurantDetails struct {
-	Id       string  `json:"id"`
-	Title    string  `json:"title"`
-	OwnerId  string  `json:"about, omitempty"`
-	Avatar   string  `json:"avatar, omitempty"`
-	Cover    string  `json:"cover, omitempty"`
-	About    string  `json:"about, omitempty"`
-	Location string  `json:"location, omitempty"`
-	City     string  `json:"city, omitempty"`
-	Area     string  `json:"area, omitempty"`
-	Role     string  `json:"role, omitempty"`
-	Rating   float64 `json:"rating, omitempty"`
+	Id             string  `json:"id"`
+	Title          string  `json:"title"`
+	OwnerId        string  `json:"owner_id, omitempty"`
+	Avatar         string  `json:"avatar, omitempty"`
+	Cover          string  `json:"cover, omitempty"`
+	About          string  `json:"about, omitempty"`
+	Location       string  `json:"location, omitempty"`
+	City           string  `json:"city, omitempty"`
+	Area           string  `json:"area, omitempty"`
+	Country        string  `json:"country, omitempty"`
+	Phone          string  `json:"Phone, omitempty"`
+	OpeningTime    string  `json:"opening_time, omitempty"`
+	ClosingTime    string  `json:"closing_time, omitempty"`
+	AmbassadorCode string  `json:"ambassador_code, omitempty"`
+	VatRegNo       string  `json:"vat_reg_no, omitempty"`
+	Active         string  `json:"active, omitempty"`
+	CloseStatus    string  `json:"close_status, omitempty"`
+	CreatedAt      string  `json:"created_at, omitempty"`
+	Role           string  `json:"role, omitempty"`
+	Rating         float64 `json:"rating, omitempty"`
 }
 
 func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime string) error {
@@ -51,6 +60,7 @@ func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, loc
 	city = strings.TrimSpace(city)
 	area = strings.TrimSpace(area)
 	location = strings.TrimSpace(location)
+	country = "Bangladesh"
 	openingTime = strings.TrimSpace(openingTime)
 	closingTime = strings.TrimSpace(closingTime)
 	if !rxPhone.MatchString(phone) {
@@ -179,18 +189,15 @@ func (s *Service) GetRestaurantsByFp(ctx context.Context) ([]Restaurant, error) 
 	return uu, nil
 }
 
-func (s *Service) GetRestaurantByIdForFp(ctx context.Context, id string) (Restaurant, error) {
-	_, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
-	var r Restaurant
-	if !ok {
-		return r, ErrUnauthenticated
-	}
-	if !rxUUID.MatchString(id) {
-		return r, ErrInvalidRestaurantId
-	}
-
-	query := "SELECT * FROM restaurant WHERE id = $1"
-	err := s.db.QueryRowContext(ctx, query, id).Scan(&r.Id, &r.Title, &r.o, &r.About, &r.Rating)
+func (s *Service) getRestaurantByIdForFp(ctx context.Context, id string) (RestaurantDetails, error) {
+	var r RestaurantDetails
+	query := `SELECT id, title, owner_id, about, active, location, city, area, country, phone, opening_time,
+       closing_time, rating, close_status, created_at, COALESCE(ambassador_code, ''), COALESCE(vat_reg_no, '')
+	   FROM restaurant
+	   WHERE id = $1`
+	err := s.db.QueryRowContext(ctx, query, id).Scan(&r.Id, &r.Title, &r.OwnerId, &r.About, &r.Active, &r.Location,
+		&r.City, &r.Area, &r.Country, &r.Phone, &r.OpeningTime, &r.ClosingTime, &r.Rating, &r.CloseStatus, &r.CreatedAt,
+		&r.AmbassadorCode, &r.VatRegNo)
 	if err == sql.ErrNoRows {
 		return r, ErrRestaurantNotFound
 	}

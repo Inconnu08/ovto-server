@@ -31,11 +31,11 @@ type RestaurantDetails struct {
 	Avatar         string  `json:"avatar, omitempty"`
 	Cover          string  `json:"cover, omitempty"`
 	About          string  `json:"about, omitempty"`
-	Location       string  `json:"location, omitempty"`
+	Location       string  `json:"location, omitempty"` // TODO:  location and address should differ.
 	City           string  `json:"city, omitempty"`
 	Area           string  `json:"area, omitempty"`
 	Country        string  `json:"country, omitempty"`
-	Phone          string  `json:"Phone, omitempty"`
+	Phone          string  `json:"phone, omitempty"`
 	OpeningTime    string  `json:"opening_time, omitempty"`
 	ClosingTime    string  `json:"closing_time, omitempty"`
 	AmbassadorCode string  `json:"ambassador_code, omitempty"`

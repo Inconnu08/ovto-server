@@ -292,16 +292,15 @@ func (s *Service) UpdateRestaurant(ctx context.Context, id, about, phone, locati
 	if !rxUUID.MatchString(id) {
 		return ErrInvalidRestaurantId
 	}
-
+	fmt.Println(id)
 	about = strings.TrimSpace(about)
 	city = strings.TrimSpace(city)
 	area = strings.TrimSpace(area)
 	location = strings.TrimSpace(location)
 	phone = strings.TrimSpace(phone)
-	if phone != "" {
-		if !rxPhone.MatchString(phone) {
-			return ErrInvalidPhone
-		}
+
+	if !rxPhone.MatchString(phone) {
+		return ErrInvalidPhone
 	}
 
 	tx, err := s.db.BeginTx(ctx, nil)
@@ -310,45 +309,57 @@ func (s *Service) UpdateRestaurant(ctx context.Context, id, about, phone, locati
 	}
 	defer func() { _ = tx.Rollback() }()
 
-	query, args, err := buildQuery(`
-		UPDATE restaurant SET 
-		{{if .about}}
-		about = @1 
-		{{end}}
-		{{if .city}}
-		, city = @2
-		{{end}}
-		{{if .area}}
-		, city = @3
-		{{end}}
-		{{if .phone}}
-		, phone = @4
-		{{end}}
-		{{if .location}}
-		, city = @5
-		{{end}}
-  		WHERE id = @6`, map[string]interface{}{
-		"1":        about,
-		"2":        city,
-		"3":        area,
-		"4":        phone,
-		"5":        location,
-		"6":        id,
-		"about":    about,
-		"city":     city,
-		"area":     area,
-		"phone":    phone,
-		"location": location,
-		"id":       id,
-	})
-	if err != nil {
-		return fmt.Errorf("could not build sql query: %v", err)
+	//query, args, err := buildQuery(`
+	//	UPDATE restaurant SET
+	//	{{if .about}}
+	//	about = @1
+	//	{{end}}
+	//	{{if .city}}
+	//	, city = @2
+	//	{{end}}
+	//	{{if .area}}
+	//	, city = @3
+	//	{{end}}
+	//	{{if .phone}}
+	//	, phone = @4
+	//	{{end}}
+	//	{{if .location}}
+	//	, location = @5
+	//	{{end}}
+	//	WHERE id = @6`, map[string]interface{}{
+	//	"1":        about,
+	//	"2":        city,
+	//	"3":        area,
+	//	"4":        phone,
+	//	"5":        location,
+	//	"6":        id,
+	//	"about":    about,
+	//	"city":     city,
+	//	"area":     area,
+	//	"phone":    phone,
+	//	"location": location,
+	//	"id":       id,
+	//})
+	//if err != nil {
+	//	return fmt.Errorf("could not build sql query: %v", err)
+	//}
+	//
+	//fmt.Println(query)
+	//fmt.Println(args)
+	//_, err = tx.ExecContext(ctx, query, args...)
+	var ab string
+	if err = s.db.QueryRowContext(ctx, `
+		SELECT title
+		FROM restaurant
+		WHERE id = $1`, id).Scan(&ab); err != nil {
+		return fmt.Errorf("failed to get restaurant: %v", err)
 	}
-
-	fmt.Println(query)
-	fmt.Println(args)
-	_, err = tx.ExecContext(ctx, query, args...)
-	if err != nil {
+	fmt.Println("ab")
+	fmt.Println(ab)
+	if _, err = s.db.ExecContext(ctx, `
+		UPDATE restaurant
+		SET about = $2, location = $3, area = $4, city = $5, phone = $6
+		WHERE id = $1`, id, about, location, area, city, phone); err != nil {
 		return fmt.Errorf("failed to update restaurant: %v", err)
 	}
 

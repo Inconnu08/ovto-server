@@ -22,7 +22,6 @@ type createRestaurantInput struct {
 }
 
 type updateRestaurantInput struct {
-	Id			string `json:"id"`
 	About       string `json:"about,omitempty"`
 	Phone       string `json:"phone,omitempty"`
 	Location    string `json:"location,omitempty"`
@@ -70,15 +69,17 @@ func (h *handler) createRestaurant(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *handler) updateRestaurant(w http.ResponseWriter, r *http.Request) {
-	var in updateRestaurantInput
+	ctx := r.Context()
+	rID := way.Param(ctx, "restaurant_id")
 
+	var in updateRestaurantInput
 	defer r.Body.Close()
 	if err := json.NewDecoder(r.Body).Decode(&in); err != nil {
 		http.Error(w, err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	err := h.UpdateRestaurant(r.Context(), in.Id, in.About, in.Phone, in.Location, in.City, in.Area)
+	err := h.UpdateRestaurant(r.Context(), rID, in.About, in.Phone, in.Location, in.City, in.Area)
 	if err == service.ErrUnauthenticated {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

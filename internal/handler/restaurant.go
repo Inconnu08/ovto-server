@@ -149,6 +149,11 @@ func (h *handler) updateRestaurantDisplayPicture(w http.ResponseWriter, r *http.
 		return
 	}
 
+	if err == service. ErrInvalidRestaurantId {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
 	if err == service.ErrUnsupportedImageFormat {
 		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
 		return

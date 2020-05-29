@@ -16,7 +16,6 @@ import (
 	_ "github.com/jackc/pgx/stdlib"
 	"github.com/sirupsen/logrus"
 
-	"ovto/internal/fixtures"
 	"ovto/internal/handler"
 	"ovto/internal/service"
 )
@@ -42,6 +41,8 @@ func run() error {
 		TimestampFormat: time.RFC3339,
 		FullTimestamp:   true,
 		ForceColors:     true,
+		EnvironmentOverrideColors:true,
+		QuoteEmptyFields:true,
 	}
 	log.SetReportCaller(true)
 
@@ -83,7 +84,7 @@ func run() error {
 
 	s := service.New(db, codec, fpCodec, aCodec, *origin)
 
-	fixtures.PopulateFoodProvider(s)
+	//fixtures.PopulateFoodProvider(s)
 
 	server := http.Server{
 		Addr:              fmt.Sprintf(":%d", port),

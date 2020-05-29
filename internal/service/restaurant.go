@@ -418,6 +418,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 	r = io.LimitReader(r, MaxImageBytes)
 	img, format, err := image.Decode(r)
 	if err == image.ErrFormat {
+		fmt.Println(err)
 		return "", ErrUnsupportedImageFormat
 	}
 

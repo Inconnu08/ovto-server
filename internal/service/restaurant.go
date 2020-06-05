@@ -191,17 +191,20 @@ func (s *Service) GetRestaurantsByFp(ctx context.Context) ([]Restaurant, error) 
 
 func (s *Service) getRestaurantByIdForFp(ctx context.Context, id string) (RestaurantDetails, error) {
 	var r RestaurantDetails
-	query := `SELECT id, title, owner_id, about, active, location, city, area, country, phone, opening_time,
-       closing_time, rating, close_status, created_at, COALESCE(ambassador_code, ''), COALESCE(vat_reg_no, '')
+	query := `SELECT id, title, COALESCE(avatar, ''), COALESCE(cover, ''), owner_id, about, active, location, city,
+       area, country, phone, opening_time, closing_time, rating, close_status, created_at,
+       COALESCE(ambassador_code, ''), COALESCE(vat_reg_no, '')
 	   FROM restaurant
 	   WHERE id = $1`
-	err := s.db.QueryRowContext(ctx, query, id).Scan(&r.Id, &r.Title, &r.OwnerId, &r.About, &r.Active, &r.Location,
-		&r.City, &r.Area, &r.Country, &r.Phone, &r.OpeningTime, &r.ClosingTime, &r.Rating, &r.CloseStatus, &r.CreatedAt,
-		&r.AmbassadorCode, &r.VatRegNo)
+	err := s.db.QueryRowContext(ctx, query, id).Scan(&r.Id, &r.Title, &r.Avatar, &r.Cover, &r.OwnerId, &r.About,
+		&r.Active, &r.Location, &r.City, &r.Area, &r.Country, &r.Phone, &r.OpeningTime, &r.ClosingTime, &r.Rating,
+		&r.CloseStatus, &r.CreatedAt, &r.AmbassadorCode, &r.VatRegNo)
 	if err == sql.ErrNoRows {
 		return r, ErrRestaurantNotFound
 	}
-
+	//if len(r.Avatar) != 0 {
+	//	r.Avatar = "/img/restaurant/" + r.Id + "/" + r.Avatar
+	//}
 	if err != nil {
 		return r, fmt.Errorf("could not query restaurant: %v", err)
 	}
@@ -472,13 +475,13 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 		return "", fmt.Errorf("could not update dp: %v", err)
 	}
 
-	if oldDp.Valid {
+	if oldDp.Valid {gitr
 		defer os.Remove(path.Join(restaurantDir, rid, oldDp.String))
 	}
-	dpURL := s.origin
-	dpURL.Path = "/img/restaurant/" + rid + "/" + dp
+	//dpURL := s.origin
+	//dpURL.Path = "/img/restaurant/" + rid + "/" + dp
 
-	return dpURL.String(), nil
+	return dp, nil
 }
 
 // UpdatePicture is a utility function returning the new uploaded image as URL.

@@ -15,7 +15,7 @@ import (
 type key string
 
 const (
-	TokenLifeSpan = time.Hour * 1
+	TokenLifeSpan = time.Hour * 78
 	// These are used in context.
 	KeyAuthUserID         key = "auth_user_id"
 	KeyAuthFoodProviderID key = "auth_food_provider_id"

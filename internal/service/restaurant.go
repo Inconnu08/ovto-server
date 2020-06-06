@@ -645,7 +645,7 @@ func (s *Service) UpdateRestaurantCoverPicture(ctx context.Context, r io.Reader,
 	return coverPicture, nil
 }
 
-func (s *Service) UpdateRestaurantGallery(ctx context.Context, r io.Reader, rid string) (string, error) {
+func (s *Service) CreateRestaurantGalleryPicture(ctx context.Context, r io.Reader, rid string) (string, error) {
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	if !ok {
 		return "", ErrUnauthenticated
@@ -687,8 +687,8 @@ func (s *Service) UpdateRestaurantGallery(ctx context.Context, r io.Reader, rid 
 
 	displayPicturePath := path.Join(restaurantDir, rid, "gallery")
 	if _, err := os.Stat(displayPicturePath); os.IsNotExist(err) {
-		err = os.Mkdir(displayPicturePath, os.ModeDir)
-		return "", fmt.Errorf("failed to create path for image: %v", err)
+		if err = os.Mkdir(displayPicturePath, os.ModeDir); err != nil {
+		return "", fmt.Errorf("failed to create path for image: %v", err)}
 	}
 	displayPicturePath = path.Join(displayPicturePath, imageName)
 	f, err := os.Create(displayPicturePath)
@@ -697,7 +697,7 @@ func (s *Service) UpdateRestaurantGallery(ctx context.Context, r io.Reader, rid 
 	}
 	defer f.Close()
 
-	img = imaging.Fill(img, 400, 400, imaging.Center, imaging.CatmullRom)
+	//img = imaging.Fill(img, 600, 400, imaging.Center, imaging.CatmullRom)
 	if format == "png" {
 		err = png.Encode(f, img)
 	} else {
@@ -711,8 +711,9 @@ func (s *Service) UpdateRestaurantGallery(ctx context.Context, r io.Reader, rid 
 		return "", fmt.Errorf("could not update imageName: %v", err)
 	}
 
-	dpURL := s.origin
-	dpURL.Path = "/img/restaurant/" + rid + "/gallery/" + imageName
-
-	return dpURL.String(), nil
+	//dpURL := s.origin
+	//dpURL.Path = "/img/restaurant/" + rid + "/gallery/" + imageName
+	//
+	//return dpURL.String(), nil
+	return imageName, nil
 }

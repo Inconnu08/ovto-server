@@ -193,14 +193,14 @@ func (h *handler) updateRestaurantCoverPicture(w http.ResponseWriter, r *http.Re
 	fmt.Fprint(w, imageURL)
 }
 
-func (h *handler) updateRestaurantGallery(w http.ResponseWriter, r *http.Request) {
+func (h *handler) createRestaurantGalleryPicture(w http.ResponseWriter, r *http.Request) {
 	r.Body = http.MaxBytesReader(w, r.Body, service.MaxImageBytes)
 	defer r.Body.Close()
 
 	ctx := r.Context()
 	rID := way.Param(ctx, "restaurant_id")
 
-	imageURL, err := h.UpdateRestaurantGallery(ctx, r.Body, rID)
+	imageURL, err := h.CreateRestaurantGalleryPicture(ctx, r.Body, rID)
 	if err == service.ErrUnauthenticated {
 		http.Error(w, err.Error(), http.StatusUnauthorized)
 		return

@@ -475,7 +475,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 		return "", fmt.Errorf("could not update dp: %v", err)
 	}
 
-	if oldDp.Valid {gitr
+	if oldDp.Valid {
 		defer os.Remove(path.Join(restaurantDir, rid, oldDp.String))
 	}
 	//dpURL := s.origin
@@ -485,7 +485,7 @@ func (s *Service) UpdateRestaurantDisplayPicture(ctx context.Context, r io.Reade
 }
 
 // UpdatePicture is a utility function returning the new uploaded image as URL.
-func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, rid, dir, query, urlPath string, uid int64, h, w int) (string, error) {
+func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, rid, dir, query, urlPath string, uid int64, h, w int, hasPath bool) (string, error) {
 	if rid != "" {
 		if !rxUUID.MatchString(rid) {
 			return "", ErrInvalidId
@@ -554,10 +554,14 @@ func (s *Service) UpdatePicture(ctx context.Context, r io.Reader, rid, dir, quer
 	if oldImg.Valid {
 		defer os.Remove(path.Join(dir, rid, oldImg.String))
 	}
-	imgURL := s.origin
-	imgURL.Path = urlPath + imageName
+	if hasPath {
+		imgURL := s.origin
+		imgURL.Path = urlPath + imageName
 
-	return imgURL.String(), nil
+		return imgURL.String(), nil
+	}
+
+	return imageName, nil
 }
 
 func (s *Service) UpdateRestaurantCoverPicture(ctx context.Context, r io.Reader, rid string) (string, error) {
@@ -566,16 +570,79 @@ func (s *Service) UpdateRestaurantCoverPicture(ctx context.Context, r io.Reader,
 		return "", ErrUnauthenticated
 	}
 
+	if !rxUUID.MatchString(rid) {
+		return "", ErrInvalidRestaurantId
+	}
+
 	if _, err := s.checkPermission(ctx, Manager, uid, rid); err != nil {
 		fmt.Println("Permission Failed!")
 		return "", ErrUnauthenticated
 	}
 
-	return s.UpdatePicture(ctx, r, rid, "cover", `
+	r = io.LimitReader(r, MaxImageBytes)
+	img, format, err := image.Decode(r)
+	if err == image.ErrFormat {
+		fmt.Println(err)
+		return "", ErrUnsupportedImageFormat
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("could not read cover file: %v", err)
+	}
+
+	if format != "png" && format != "jpeg" {
+		return "", ErrUnsupportedImageFormat
+	}
+
+	coverPicture, err := gonanoid.Nanoid()
+	if err != nil {
+		return "", fmt.Errorf("could not generate cover filename: %v", err)
+	}
+
+	if format == "png" {
+		coverPicture += ".png"
+	} else {
+		coverPicture += ".jpg"
+	}
+
+	picturePath := path.Join(restaurantDir, rid)
+	if _, err := os.Stat(picturePath); os.IsNotExist(err) {
+		err = os.Mkdir(picturePath, os.ModeDir)
+		return "", fmt.Errorf("failed to create path for image: %v", err)
+	}
+	picturePath = path.Join(picturePath, coverPicture)
+	f, err := os.Create(picturePath)
+	if err != nil {
+		return "", fmt.Errorf("could not create coverPicture file: %v", err)
+	}
+	defer f.Close()
+
+	//img = imaging.Fill(img, 400, 300, imaging.Center, imaging.CatmullRom)
+	if format == "png" {
+		err = png.Encode(f, img)
+	} else {
+		err = jpeg.Encode(f, img, nil)
+	}
+	if err != nil {
+		return "", fmt.Errorf("could not write coverPicture to disk: %v", err)
+	}
+
+	var oldDp sql.NullString
+	if err = s.db.QueryRowContext(ctx, `
 		UPDATE restaurant SET cover = $1 WHERE id = $2
-		RETURNING (SELECT cover FROM restaurant WHERE id = $2) AS old_dp`,
-		"/img/restaurant/"+rid+"/",
-		uid, 300, 800)
+		RETURNING (SELECT cover FROM restaurant WHERE id = $2) AS old_dp`, coverPicture, rid).
+		Scan(&oldDp); err != nil {
+		defer os.Remove(picturePath)
+		return "", fmt.Errorf("could not update coverPicture: %v", err)
+	}
+
+	if oldDp.Valid {
+		defer os.Remove(path.Join(restaurantDir, rid, oldDp.String))
+	}
+	//dpURL := s.origin
+	//dpURL.Path = "/img/restaurant/" + rid + "/" + coverPicture
+
+	return coverPicture, nil
 }
 
 func (s *Service) UpdateRestaurantGallery(ctx context.Context, r io.Reader, rid string) (string, error) {

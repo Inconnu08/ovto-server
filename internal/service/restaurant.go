@@ -47,6 +47,10 @@ type RestaurantDetails struct {
 	Rating         float64 `json:"rating, omitempty"`
 }
 
+type Gallery struct {
+	Pictures []string `json:"pictures"`
+}
+
 func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime string) error {
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	println("Finally:", uid)
@@ -688,7 +692,8 @@ func (s *Service) CreateRestaurantGalleryPicture(ctx context.Context, r io.Reade
 	displayPicturePath := path.Join(restaurantDir, rid, "gallery")
 	if _, err := os.Stat(displayPicturePath); os.IsNotExist(err) {
 		if err = os.Mkdir(displayPicturePath, os.ModeDir); err != nil {
-		return "", fmt.Errorf("failed to create path for image: %v", err)}
+			return "", fmt.Errorf("failed to create path for image: %v", err)
+		}
 	}
 	displayPicturePath = path.Join(displayPicturePath, imageName)
 	f, err := os.Create(displayPicturePath)
@@ -716,4 +721,30 @@ func (s *Service) CreateRestaurantGalleryPicture(ctx context.Context, r io.Reade
 	//
 	//return dpURL.String(), nil
 	return imageName, nil
+}
+
+func (s *Service) GetRestaurantGallery(ctx context.Context, rid string) (*Gallery, error) {
+	var gallery Gallery
+	pictures := make([]string, 0)
+
+	query := "SELECT image FROM restaurant_gallery WHERE restaurant_id = $1"
+	rows, err := s.db.QueryContext(ctx, query, rid)
+	if err != sql.ErrNoRows {
+		defer rows.Close()
+
+		for rows.Next() {
+			var picture string
+			if err = rows.Scan(&picture); err != nil {
+				return nil, fmt.Errorf("could not iterate properly: %v", err)
+			}
+			pictures = append(pictures, picture)
+		}
+
+		if err = rows.Err(); err != nil {
+			return nil, fmt.Errorf("could not iterate images: %v", err)
+		}
+
+	}
+	gallery.Pictures = pictures
+	return &gallery, nil
 }

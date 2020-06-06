@@ -218,3 +218,26 @@ func (h *handler) createRestaurantGalleryPicture(w http.ResponseWriter, r *http.
 
 	fmt.Fprint(w, imageURL)
 }
+
+func (h *handler) getRestaurantGallery(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rID := way.Param(ctx, "restaurant_id")
+
+	imageURLs, err := h.GetRestaurantGallery(ctx, rID)
+	if err == service.ErrUnauthenticated {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err == service.ErrUnsupportedImageFormat {
+		http.Error(w, err.Error(), http.StatusUnsupportedMediaType)
+		return
+	}
+
+	if err != nil {
+		respondErr(w, err)
+		return
+	}
+
+	respond(w, imageURLs, http.StatusOK)
+}

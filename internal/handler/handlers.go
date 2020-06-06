@@ -38,6 +38,7 @@ func New(s *service.Service) http.Handler {
 	restaurantApi.HandleFunc("PUT", "/:restaurant_id/dp", h.updateRestaurantDisplayPicture)
 	restaurantApi.HandleFunc("PUT", "/:restaurant_id/cover", h.updateRestaurantCoverPicture)
 	restaurantApi.HandleFunc("POST", "/:restaurant_id/gallery", h.createRestaurantGalleryPicture)
+	restaurantApi.HandleFunc("GET", "/:restaurant_id/gallery", h.getRestaurantGallery)
 	restaurantApi.HandleFunc("POST", "/:restaurant_id/category", h.createCategory)
 	restaurantApi.HandleFunc("GET", "/:restaurant_id/category", h.getCategoriesByRestaurant)
 	restaurantApi.HandleFunc("POST", "/:restaurant_id/menu", h.createItem)

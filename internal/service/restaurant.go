@@ -51,6 +51,10 @@ type Gallery struct {
 	Pictures []string `json:"gallery"`
 }
 
+type Offers struct {
+	Pictures []string `json:"offers"`
+}
+
 func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime string) error {
 	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
 	println("Finally:", uid)
@@ -771,4 +775,79 @@ func (s *Service) GetRestaurantGallery(ctx context.Context, rid string) (*Galler
 	}
 	gallery.Pictures = pictures
 	return &gallery, nil
+}
+
+func (s *Service) CreateRestaurantOffersPicture(ctx context.Context, r io.Reader, rid string) (string, error) {
+	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
+	if !ok {
+		return "", ErrUnauthenticated
+	}
+
+	if !rxUUID.MatchString(rid) {
+		return "", ErrInvalidRestaurantId
+	}
+
+	if _, err := s.checkPermission(ctx, Manager, uid, rid); err != nil {
+		fmt.Println("Permission Failed!")
+		return "", ErrUnauthenticated
+	}
+
+	r = io.LimitReader(r, MaxImageBytes)
+	img, format, err := image.Decode(r)
+	if err == image.ErrFormat {
+		return "", ErrUnsupportedImageFormat
+	}
+
+	if err != nil {
+		return "", fmt.Errorf("could not read imageName: %v", err)
+	}
+
+	if format != "png" && format != "jpeg" {
+		return "", ErrUnsupportedImageFormat
+	}
+
+	imageName, err := gonanoid.Nanoid()
+	if err != nil {
+		return "", fmt.Errorf("could not generate imageName filename: %v", err)
+	}
+
+	if format == "png" {
+		imageName += ".png"
+	} else {
+		imageName += ".jpg"
+	}
+
+	displayPicturePath := path.Join(restaurantDir, rid, "offers")
+	if _, err := os.Stat(displayPicturePath); os.IsNotExist(err) {
+		if err = os.Mkdir(displayPicturePath, os.ModeDir); err != nil {
+			return "", fmt.Errorf("failed to create path for image: %v", err)
+		}
+	}
+	displayPicturePath = path.Join(displayPicturePath, imageName)
+	f, err := os.Create(displayPicturePath)
+	if err != nil {
+		return "", fmt.Errorf("could not create imageName file: %v", err)
+	}
+	defer f.Close()
+
+	//img = imaging.Fill(img, 600, 400, imaging.Center, imaging.CatmullRom)
+	if format == "png" {
+		err = png.Encode(f, img)
+	} else {
+		err = jpeg.Encode(f, img, nil)
+	}
+	if err != nil {
+		return "", fmt.Errorf("could not write image to disk: %v", err)
+	}
+
+	query := `INSERT INTO restaurant_offers(restaurant_id, image) VALUES ($1, $2)`
+	if _, err = s.db.QueryContext(ctx, query, rid, imageName); err != nil {
+		return "", fmt.Errorf("sql failed: %v", err)
+	}
+
+	//dpURL := s.origin
+	//dpURL.Path = "/img/restaurant/" + rid + "/offers/" + imageName
+	//
+	//return dpURL.String(), nil
+	return imageName, nil
 }

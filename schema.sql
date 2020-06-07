@@ -154,3 +154,12 @@ CREATE TABLE IF NOT EXISTS order_item
 -- INSERT INTO users (id, email, fullname)
 -- VALUES (1, 'jon@example.org', 'jon snow'),
 --        (2, 'jane@example.org', 'night king');
+
+CREATE TABLE IF NOT EXISTS restaurant_offers
+(
+    id              SERIAL,
+    restaurant_id   UUID NOT NULL REFERENCES restaurant,
+    image           VARCHAR NOT NULL,
+    created_at      TIMESTAMPTZ NOT NULL DEFAULT now(),
+    PRIMARY KEY (id, restaurant_id)
+);

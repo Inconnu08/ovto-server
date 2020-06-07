@@ -48,7 +48,7 @@ type RestaurantDetails struct {
 }
 
 type Gallery struct {
-	Pictures []string `json:"pictures"`
+	Pictures []string `json:"gallery"`
 }
 
 func (s *Service) CreateRestaurant(ctx context.Context, title, about, phone, location, city, area, country, openingTime, closingTime string) error {
@@ -721,6 +721,30 @@ func (s *Service) CreateRestaurantGalleryPicture(ctx context.Context, r io.Reade
 	//
 	//return dpURL.String(), nil
 	return imageName, nil
+}
+
+func (s *Service) DeleteRestaurantGalleryPicture(ctx context.Context, rid, image string) error {
+	uid, ok := ctx.Value(KeyAuthFoodProviderID).(int64)
+	if !ok {
+		return ErrUnauthenticated
+	}
+
+	if !rxUUID.MatchString(rid) {
+		return ErrInvalidRestaurantId
+	}
+
+	if _, err := s.checkPermission(ctx, Manager, uid, rid); err != nil {
+		fmt.Println("Permission Failed!")
+		return ErrUnauthenticated
+	}
+
+	query := "DELETE FROM restaurant_gallery WHERE restaurant_id = $1 AND image = $2"
+	_, err := s.db.ExecContext(ctx, query, rid, image)
+	if err != nil {
+		return fmt.Errorf("could not delete image: %v", err)
+	}
+
+	return nil
 }
 
 func (s *Service) GetRestaurantGallery(ctx context.Context, rid string) (*Gallery, error) {

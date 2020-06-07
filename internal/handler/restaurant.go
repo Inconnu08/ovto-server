@@ -22,12 +22,12 @@ type createRestaurantInput struct {
 }
 
 type updateRestaurantInput struct {
-	About       string `json:"about,omitempty"`
-	Phone       string `json:"phone,omitempty"`
-	Location    string `json:"location,omitempty"`
-	City        string `json:"city,omitempty"`
-	Area        string `json:"area,omitempty"`
-	Country     string `json:"country,omitempty"`
+	About    string `json:"about,omitempty"`
+	Phone    string `json:"phone,omitempty"`
+	Location string `json:"location,omitempty"`
+	City     string `json:"city,omitempty"`
+	Area     string `json:"area,omitempty"`
+	Country  string `json:"country,omitempty"`
 }
 
 func (h *handler) createRestaurant(w http.ResponseWriter, r *http.Request) {
@@ -149,7 +149,7 @@ func (h *handler) updateRestaurantDisplayPicture(w http.ResponseWriter, r *http.
 		return
 	}
 
-	if err == service. ErrInvalidRestaurantId {
+	if err == service.ErrInvalidRestaurantId {
 		http.Error(w, err.Error(), http.StatusNotFound)
 		return
 	}
@@ -240,4 +240,28 @@ func (h *handler) getRestaurantGallery(w http.ResponseWriter, r *http.Request) {
 	}
 
 	respond(w, imageURLs, http.StatusOK)
+}
+
+func (h *handler) deleteRestaurantGalleryPicture(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rID := way.Param(ctx, "restaurant_id")
+	image := way.Param(ctx, "image")
+
+	err := h.DeleteRestaurantGalleryPicture(r.Context(), rID, image)
+	if err == service.ErrUnauthenticated {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err == service.ErrRestaurantNotFound {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		respondErr(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }

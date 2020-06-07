@@ -291,3 +291,27 @@ func (h *handler) createRestaurantOffersPicture(w http.ResponseWriter, r *http.R
 
 	fmt.Fprint(w, imageURL)
 }
+
+func (h *handler) deleteRestaurantOffersPicture(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	rID := way.Param(ctx, "restaurant_id")
+	image := way.Param(ctx, "image")
+
+	err := h.DeleteRestaurantOffersPicture(r.Context(), rID, image)
+	if err == service.ErrUnauthenticated {
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+		return
+	}
+
+	if err == service.ErrRestaurantNotFound {
+		http.Error(w, err.Error(), http.StatusNotFound)
+		return
+	}
+
+	if err != nil {
+		respondErr(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}

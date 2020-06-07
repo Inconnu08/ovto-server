@@ -25,26 +25,27 @@ type Restaurant struct {
 }
 
 type RestaurantDetails struct {
-	Id             string  `json:"id"`
-	Title          string  `json:"title"`
-	OwnerId        string  `json:"owner_id, omitempty"`
-	Avatar         string  `json:"avatar, omitempty"`
-	Cover          string  `json:"cover, omitempty"`
-	About          string  `json:"about, omitempty"`
-	Location       string  `json:"location, omitempty"` // TODO:  location and address should differ.
-	City           string  `json:"city, omitempty"`
-	Area           string  `json:"area, omitempty"`
-	Country        string  `json:"country, omitempty"`
-	Phone          string  `json:"phone, omitempty"`
-	OpeningTime    string  `json:"opening_time, omitempty"`
-	ClosingTime    string  `json:"closing_time, omitempty"`
-	AmbassadorCode string  `json:"ambassador_code, omitempty"`
-	VatRegNo       string  `json:"vat_reg_no, omitempty"`
-	Active         string  `json:"active, omitempty"`
-	CloseStatus    string  `json:"close_status, omitempty"`
-	CreatedAt      string  `json:"created_at, omitempty"`
-	Role           string  `json:"role, omitempty"`
-	Rating         float64 `json:"rating, omitempty"`
+	Id             string   `json:"id"`
+	Title          string   `json:"title"`
+	OwnerId        string   `json:"owner_id, omitempty"`
+	Avatar         string   `json:"avatar, omitempty"`
+	Cover          string   `json:"cover, omitempty"`
+	About          string   `json:"about, omitempty"`
+	Location       string   `json:"location, omitempty"` // TODO:  location and address should differ.
+	City           string   `json:"city, omitempty"`
+	Area           string   `json:"area, omitempty"`
+	Country        string   `json:"country, omitempty"`
+	Phone          string   `json:"phone, omitempty"`
+	OpeningTime    string   `json:"opening_time, omitempty"`
+	ClosingTime    string   `json:"closing_time, omitempty"`
+	AmbassadorCode string   `json:"ambassador_code, omitempty"`
+	VatRegNo       string   `json:"vat_reg_no, omitempty"`
+	Active         string   `json:"active, omitempty"`
+	CloseStatus    string   `json:"close_status, omitempty"`
+	CreatedAt      string   `json:"created_at, omitempty"`
+	Role           string   `json:"role, omitempty"`
+	Rating         float64  `json:"rating, omitempty"`
+	Pictures       *Gallery `json:"pictures, omitempty"`
 }
 
 type Gallery struct {

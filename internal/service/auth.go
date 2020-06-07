@@ -44,10 +44,10 @@ type LoginOutput struct {
 }
 
 type FPLoginOutput struct {
-	Token       string              `json:"token"`
-	ExpiresAt   time.Time           `json:"expiresAt"`
-	AuthUser    FoodProviderProfile `json:"authUser"`
-	Restaurants *[]RestaurantDetails        `json:"restaurants, omitempty"`
+	Token       string               `json:"token"`
+	ExpiresAt   time.Time            `json:"expiresAt"`
+	AuthUser    FoodProviderProfile  `json:"authUser"`
+	Restaurants *[]RestaurantDetails `json:"restaurants, omitempty"`
 }
 
 type GoogleAuthOutput struct {
@@ -273,10 +273,12 @@ func (s *Service) FoodProviderLogin(ctx context.Context, phone string, password 
 			fmt.Println("[ROLE]:", rl, Admin)
 
 			r, err = s.getRestaurantByIdForFp(ctx, r.Id)
-			fmt.Println(err)
 			if err == nil {
-				fmt.Println("NO ERR")
-				//fmt.Errorf("could not get restaurant details: %v", err)
+				fmt.Errorf("could not get restaurant details: %v", err)
+				r.Pictures, err = s.GetRestaurantGallery(ctx, r.Id)
+				if err != nil {
+					fmt.Errorf("could not get restaurant pictures: %v", err)
+				}
 				r.Role = getRole(rl)
 				restaurantList = append(restaurantList, r)
 			}

@@ -41,7 +41,7 @@ type RestaurantDetails struct {
 	AmbassadorCode string   `json:"ambassador_code, omitempty"`
 	VatRegNo       string   `json:"vat_reg_no, omitempty"`
 	Active         string   `json:"active, omitempty"`
-	CloseStatus    string   `json:"close_status, omitempty"`
+	CloseStatus    bool     `json:"close_status, omitempty"`
 	CreatedAt      string   `json:"created_at, omitempty"`
 	Role           string   `json:"role, omitempty"`
 	Rating         float64  `json:"rating, omitempty"`
